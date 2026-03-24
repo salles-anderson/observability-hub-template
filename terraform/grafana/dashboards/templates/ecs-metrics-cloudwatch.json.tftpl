@@ -1,0 +1,197 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Metricas CloudWatch do ECS - CPU, Memory, Tasks",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "CPU Utilization", "type": "gauge",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ECS",
+        "metricName": "CPUUtilization",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true }
+    },
+    {
+      "id": 2, "title": "Memory Utilization", "type": "gauge",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ECS",
+        "metricName": "MemoryUtilization",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true }
+    },
+    {
+      "id": 3, "title": "CPU Reservation", "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ECS",
+        "metricName": "CPUReservation",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 4, "title": "Memory Reservation", "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ECS",
+        "metricName": "MemoryReservation",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 5, "title": "CPU & Memory Utilization Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ECS", "metricName": "CPUUtilization", "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "CPU %" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ECS", "metricName": "MemoryUtilization", "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Memory %" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } }, "overrides": [{ "matcher": { "id": "byName", "options": "CPU %" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Memory %" }, "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 6, "title": "Cluster Reservation Over Time", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ECS", "metricName": "CPUReservation", "dimensions": { "ClusterName": ["${ecs_cluster_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "CPU Reservation" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ECS", "metricName": "MemoryReservation", "dimensions": { "ClusterName": ["${ecs_cluster_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Memory Reservation" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "CPU Reservation" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Memory Reservation" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 7, "title": "Running Tasks", "type": "stat",
+      "gridPos": { "x": 0, "y": 13, "w": 8, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "ECS/ContainerInsights",
+        "metricName": "RunningTaskCount",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 1 }, { "color": "green", "value": 2 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "id": 8, "title": "Desired Tasks", "type": "stat",
+      "gridPos": { "x": 8, "y": 13, "w": 8, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "ECS/ContainerInsights",
+        "metricName": "DesiredTaskCount",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" }
+    },
+    {
+      "id": 9, "title": "Pending Tasks", "type": "stat",
+      "gridPos": { "x": 16, "y": 13, "w": 8, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "ECS/ContainerInsights",
+        "metricName": "PendingTaskCount",
+        "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "0", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 3 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 10, "title": "Task Count Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "ECS/ContainerInsights", "metricName": "RunningTaskCount", "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Running" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "ECS/ContainerInsights", "metricName": "DesiredTaskCount", "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Desired" },
+        { "refId": "C", "datasource": "${ds_cloudwatch}", "namespace": "ECS/ContainerInsights", "metricName": "PendingTaskCount", "dimensions": { "ClusterName": ["${ecs_cluster_name}"], "ServiceName": ["${ecs_service_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Pending" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Running" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Desired" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Pending" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }] }
+    }
+  ],
+  "schemaVersion": 39
+}

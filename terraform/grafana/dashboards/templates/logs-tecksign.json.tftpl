@@ -1,0 +1,280 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Visualizacao de logs com paineis de email",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "level",
+        "type": "custom",
+        "current": {
+          "text": "All",
+          "value": ""
+        },
+        "options": [
+          { "text": "All", "value": "" },
+          { "text": "Error", "value": "ERROR" },
+          { "text": "Warn", "value": "WARN" },
+          { "text": "Info", "value": "INFO" },
+          { "text": "Debug", "value": "DEBUG" }
+        ]
+      },
+      {
+        "name": "search",
+        "type": "textbox",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Log Volume by Level",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 6 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "sum by (severity) (count_over_time({job=\"${service_job}\"} | json [$${__interval}]))",
+          "legendFormat": "{{severity}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": { "mode": "normal" }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ERROR" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "WARN" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "INFO" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "DEBUG" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "Error Count",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "count_over_time({job=\"${service_job}\"} | json | severity=\"ERROR\" [$${__range}])",
+          "legendFormat": "Errors"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Warning Count",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "count_over_time({job=\"${service_job}\"} | json | severity=\"WARN\" [$${__range}])",
+          "legendFormat": "Warnings"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "orange", "value": 100 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Total Logs",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "count_over_time({job=\"${service_job}\"} [$${__range}])",
+          "legendFormat": "Total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Logs per Second",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "sum(rate({job=\"${service_job}\"} [5m]))",
+          "legendFormat": "logs/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Emails Sent",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "count_over_time({job=\"${service_job}\"} | json | attributes_event=\"smtp_email_sent\" [$${__range}])",
+          "legendFormat": "Sent"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "purple", "value": null }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Email Failures",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 6, "w": 4, "h": 4 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "count_over_time({job=\"${service_job}\"} | json | attributes_event=~\"smtp.*fail.*|smtp.*error.*\" [$${__range}])",
+          "legendFormat": "Failed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Email Activity",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 10, "w": 24, "h": 8 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "{job=\"${service_job}\"} | json | attributes_event=~\"smtp.*\"",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Application Logs",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 12 },
+      "datasource": { "type": "loki", "uid": "${ds_loki}" },
+      "targets": [
+        {
+          "expr": "{job=\"${service_job}\"} | json | severity=~\"$${level:pipe}.*\" |~ \"$${search}\"",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ],
+  "schemaVersion": 39
+}

@@ -1,0 +1,184 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Metricas CloudWatch do RDS - CPU, Memory, Connections, IOPS, Latency",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "CPU Utilization", "type": "gauge",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/RDS",
+        "metricName": "CPUUtilization",
+        "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true }
+    },
+    {
+      "id": 2, "title": "Database Connections", "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/RDS",
+        "metricName": "DatabaseConnections",
+        "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 80 }, { "color": "red", "value": 100 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 3, "title": "Freeable Memory", "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/RDS",
+        "metricName": "FreeableMemory",
+        "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 536870912 }, { "color": "green", "value": 1073741824 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 4, "title": "Free Storage Space", "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/RDS",
+        "metricName": "FreeStorageSpace",
+        "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 5368709120 }, { "color": "green", "value": 10737418240 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 5, "title": "CPU Utilization Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/RDS",
+        "metricName": "CPUUtilization",
+        "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics",
+        "alias": "CPU %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "gradientMode": "scheme" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } }
+    },
+    {
+      "id": 6, "title": "Database Connections Over Time", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/RDS",
+        "metricName": "DatabaseConnections",
+        "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics",
+        "alias": "Connections"
+      }],
+      "fieldConfig": { "defaults": { "unit": "none", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 } } }
+    },
+    {
+      "id": 7, "title": "Read/Write IOPS", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "ReadIOPS", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Read IOPS" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "WriteIOPS", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Write IOPS" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "iops", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } } }
+    },
+    {
+      "id": 8, "title": "Read/Write Latency", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "ReadLatency", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Read Latency" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "WriteLatency", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Write Latency" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.005 }, { "color": "red", "value": 0.02 }] } } }
+    },
+    {
+      "id": 9, "title": "Memory & Storage", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 21, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "FreeableMemory", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Freeable Memory" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "FreeStorageSpace", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Free Storage" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } } }
+    },
+    {
+      "id": 10, "title": "Network Throughput", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 21, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "NetworkReceiveThroughput", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Network Receive" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/RDS", "metricName": "NetworkTransmitThroughput", "dimensions": { "DBInstanceIdentifier": ["${rds_instance_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Network Transmit" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } } }
+    }
+  ],
+  "schemaVersion": 39
+}

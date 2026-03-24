@@ -1,0 +1,121 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Metricas CloudWatch do SQS - Queue Depth, Message Age, Throughput, DLQ",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "Messages Visible", "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/SQS",
+        "metricName": "ApproximateNumberOfMessagesVisible",
+        "dimensions": { "QueueName": ["${sqs_queue_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 100 }, { "color": "red", "value": 1000 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 2, "title": "DLQ Messages", "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/SQS",
+        "metricName": "ApproximateNumberOfMessagesVisible",
+        "dimensions": { "QueueName": ["${sqs_dlq_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "0", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 10 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" }
+    },
+    {
+      "id": 3, "title": "Oldest Message Age", "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/SQS",
+        "metricName": "ApproximateAgeOfOldestMessage",
+        "dimensions": { "QueueName": ["${sqs_queue_name}"] },
+        "matchExact": true,
+        "statistic": "Maximum",
+        "statistics": ["Maximum"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 300 }, { "color": "red", "value": 900 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 4, "title": "In Flight", "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/SQS",
+        "metricName": "ApproximateNumberOfMessagesNotVisible",
+        "dimensions": { "QueueName": ["${sqs_queue_name}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 100 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 5, "title": "Queue Depth Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/SQS", "metricName": "ApproximateNumberOfMessagesVisible", "dimensions": { "QueueName": ["${sqs_queue_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Main Queue" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/SQS", "metricName": "ApproximateNumberOfMessagesVisible", "dimensions": { "QueueName": ["${sqs_dlq_name}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "DLQ" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Main Queue" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "DLQ" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 6, "title": "Message Throughput", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/SQS", "metricName": "NumberOfMessagesSent", "dimensions": { "QueueName": ["${sqs_queue_name}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Sent" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/SQS", "metricName": "NumberOfMessagesReceived", "dimensions": { "QueueName": ["${sqs_queue_name}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Received" },
+        { "refId": "C", "datasource": "${ds_cloudwatch}", "namespace": "AWS/SQS", "metricName": "NumberOfMessagesDeleted", "dimensions": { "QueueName": ["${sqs_queue_name}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Deleted" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Sent" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Received" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Deleted" }, "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }] }] }
+    }
+  ],
+  "schemaVersion": 39
+}

@@ -1,0 +1,310 @@
+/* =============================================================================
+ * Your Company - Grafana Login Theme
+ * =============================================================================
+ * Paleta:
+ *   - Deep Navy:    #060d1a
+ *   - Dark Blue:    #0d2f5e
+ *   - Medium Blue:  #4a7cc9
+ *   - Light Blue:   #5e9ff5
+ *   - Accent Cyan:  #4FC3F7
+ *   - Text:         #FFFFFF
+ *   - Text Muted:   #90CAF9
+ * =============================================================================
+ */
+
+/* -----------------------------------------------------------------------------
+ * Login Page - Background
+ * -----------------------------------------------------------------------------
+ */
+.login-page {
+  background: radial-gradient(ellipse at 30% 20%, #0d2f5e 0%, #060d1a 60%, #030a14 100%) !important;
+  min-height: 100vh !important;
+}
+
+/* Subtle grid overlay */
+.login-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(74, 124, 201, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 124, 201, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Brand badge bottom */
+.login-page::after {
+  content: "Your Company \00B7  Observability Hub";
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #90CAF9;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.5;
+  z-index: 10;
+}
+
+/* -----------------------------------------------------------------------------
+ * Login Container - Glassmorphism
+ * -----------------------------------------------------------------------------
+ */
+.login-page .login-content-box {
+  background: rgba(6, 13, 26, 0.85) !important;
+  border: 1px solid rgba(74, 124, 201, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 60px rgba(74, 124, 201, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  padding: 40px !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* Glow border effect */
+.login-page .login-content-box::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(94, 159, 245, 0.2), transparent 50%, rgba(74, 124, 201, 0.1));
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* -----------------------------------------------------------------------------
+ * Logo - PNG oficial Your Company
+ * Grafana 11.4.0 usa emotion CSS (classes dinamicas), entao usamos
+ * seletores por atributo src e estrutura DOM (login-content-box).
+ * Estrutura: .login-content-box > div:first-child (loginLogoWrapper)
+ *              > img[src*="grafana_icon"] (loginLogo)
+ * -----------------------------------------------------------------------------
+ */
+
+/* Esconde o SVG/IMG padrao do Grafana (seletor por atributo src) */
+.login-content-box img[src*="grafana_icon"],
+.login-content-box img[alt="Grafana"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Logo wrapper - ajuste layout para o logo horizontal */
+.login-content-box > div:first-child {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 90px !important;
+  position: relative !important;
+}
+
+/* Exibe o logo PNG oficial via pseudo-element no wrapper */
+.login-content-box > div:first-child::before {
+  content: "" !important;
+  display: block !important;
+  width: 280px !important;
+  height: 80px !important;
+  background-image: url('/public/img/teck-logo-white.png') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  margin-bottom: 12px !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Title - Hide default Grafana text
+ * -----------------------------------------------------------------------------
+ */
+.login-page .login-page__branding h1,
+.login-page h1 {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.login-page .login-page__branding h1::after,
+.login-page h1::after {
+  content: "Observability Hub";
+  font-size: 22px;
+  line-height: 1.4;
+  display: block;
+  color: #FFFFFF !important;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.login-page .login-page__branding h2,
+.login-page h2,
+.login-page .css-1e4qkfj {
+  color: #90CAF9 !important;
+  font-weight: 400 !important;
+  font-size: 13px !important;
+}
+
+/* Hide "Powered by Grafana" footer text */
+.login-page .login-page__footer,
+.login-page footer {
+  visibility: hidden !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Form Inputs
+ * -----------------------------------------------------------------------------
+ */
+.login-page input[type="text"],
+.login-page input[type="password"],
+.login-page input[type="email"] {
+  background-color: rgba(13, 47, 94, 0.4) !important;
+  border: 1px solid rgba(74, 124, 201, 0.3) !important;
+  border-radius: 10px !important;
+  color: #FFFFFF !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  transition: all 0.25s ease !important;
+}
+
+.login-page input[type="text"]:focus,
+.login-page input[type="password"]:focus,
+.login-page input[type="email"]:focus {
+  border-color: #5e9ff5 !important;
+  box-shadow: 0 0 0 3px rgba(94, 159, 245, 0.15), 0 0 20px rgba(94, 159, 245, 0.1) !important;
+  outline: none !important;
+}
+
+.login-page input::placeholder {
+  color: rgba(144, 202, 249, 0.5) !important;
+}
+
+/* Labels */
+.login-page label {
+  color: #90CAF9 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Submit Button
+ * -----------------------------------------------------------------------------
+ */
+.login-page button[type="submit"],
+.login-page .btn-primary {
+  background: linear-gradient(135deg, #4a7cc9 0%, #5e9ff5 100%) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 12px 24px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 20px rgba(74, 124, 201, 0.3) !important;
+  cursor: pointer !important;
+}
+
+.login-page button[type="submit"]:hover,
+.login-page .btn-primary:hover {
+  background: linear-gradient(135deg, #5e9ff5 0%, #4a7cc9 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 24px rgba(94, 159, 245, 0.4) !important;
+}
+
+.login-page button[type="submit"]:active,
+.login-page .btn-primary:active {
+  transform: translateY(0) !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Links
+ * -----------------------------------------------------------------------------
+ */
+.login-page a {
+  color: #5e9ff5 !important;
+  transition: color 0.2s ease !important;
+  font-size: 13px !important;
+}
+
+.login-page a:hover {
+  color: #90CAF9 !important;
+  text-decoration: none !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Responsive
+ * -----------------------------------------------------------------------------
+ */
+@media (max-width: 768px) {
+  .login-page .login-content-box {
+    margin: 16px !important;
+    padding: 28px !important;
+    border-radius: 12px !important;
+  }
+
+  .login-content-box > div:first-child::before {
+    width: 220px !important;
+    height: 64px !important;
+  }
+}
+
+/* =============================================================================
+ * INTERNAL PAGES — Branding inside Grafana (after login)
+ * =============================================================================
+ */
+
+/* -----------------------------------------------------------------------------
+ * Footer — Hide "Grafana v11.4.0" and replace
+ * -----------------------------------------------------------------------------
+ */
+footer,
+footer[class*="footer"],
+div[class*="Footer"] {
+  visibility: hidden !important;
+  height: 24px !important;
+  position: relative !important;
+}
+
+footer::after,
+footer[class*="footer"]::after,
+div[class*="Footer"]::after {
+  content: "Your Company \00B7  Observability Hub" !important;
+  visibility: visible !important;
+  position: absolute !important;
+  bottom: 4px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  color: #4a5568 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Sidebar Logo — Ensure Teck logo shows in navbar
+ * -----------------------------------------------------------------------------
+ */
+nav[aria-label="Main"] a[href="/"] img,
+a[class*="logo"] img {
+  content: url('/public/img/grafana_icon.svg') !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* -----------------------------------------------------------------------------
+ * Hide "Grafana" text in various places
+ * -----------------------------------------------------------------------------
+ */
+div[class*="buildInfo"],
+span[class*="buildInfo"] {
+  display: none !important;
+}

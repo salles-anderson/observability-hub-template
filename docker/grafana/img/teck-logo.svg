@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d2f5e"/>
+      <stop offset="100%" stop-color="#060d1a"/>
+    </linearGradient>
+    <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5e9ff5"/>
+      <stop offset="100%" stop-color="#4a7cc9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="60" cy="52" r="42" fill="url(#bg-grad)"/>
+
+  <!-- Outer ring -->
+  <circle cx="60" cy="52" r="42" fill="none" stroke="url(#ring-grad)" stroke-width="2.5"/>
+
+  <!-- Inner radar circle -->
+  <circle cx="60" cy="52" r="22" fill="none" stroke="#5e9ff5" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- Radar/antenna sweep line -->
+  <line x1="60" y1="52" x2="60" y2="14" stroke="#5e9ff5" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Radar antenna tip dot -->
+  <circle cx="60" cy="13" r="3" fill="#5e9ff5"/>
+
+  <!-- Radar sweep arc (signal indicator) -->
+  <path d="M 50 22 A 15 15 0 0 1 70 22" fill="none" stroke="#5e9ff5" stroke-width="1.5" opacity="0.6"/>
+  <path d="M 45 17 A 22 22 0 0 1 75 17" fill="none" stroke="#5e9ff5" stroke-width="1.2" opacity="0.3"/>
+
+  <!-- Center dot -->
+  <circle cx="60" cy="52" r="4" fill="#5e9ff5"/>
+
+  <!-- Cross hairs (subtle) -->
+  <line x1="40" y1="52" x2="80" y2="52" stroke="#5e9ff5" stroke-width="0.5" opacity="0.2"/>
+  <line x1="60" y1="32" x2="60" y2="72" stroke="#5e9ff5" stroke-width="0.5" opacity="0.2"/>
+
+  <!-- "teck" text -->
+  <text x="60" y="102"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="2">teck</text>
+
+  <!-- "SOLUCOES" text -->
+  <text x="60" y="115"
+        font-family="'Segoe UI', Arial, sans-serif"
+        font-size="8"
+        font-weight="400"
+        fill="#90CAF9"
+        text-anchor="middle"
+        letter-spacing="4">SOLUCOES</text>
+</svg>

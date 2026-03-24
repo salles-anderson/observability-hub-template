@@ -1,0 +1,36 @@
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+storage:
+  trace:
+    backend: s3
+    s3:
+      bucket: obs-hub-prod-storage
+      endpoint: s3.us-east-1.amazonaws.com
+      region: us-east-1
+      prefix: tempo/
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+compactor:
+  compaction:
+    block_retention: 744h
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: teck-obs-hub
+  storage:
+    path: /var/tempo/generator/wal

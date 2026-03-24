@@ -1,0 +1,443 @@
+# =============================================================================
+# Prometheus Recording Rules - SLI/SLO Foundation
+# =============================================================================
+# Pre-computa metricas SLI para evitar queries pesadas nos dashboards e alertas.
+# Metrica base: http_server_duration_milliseconds_* (OpenTelemetry)
+# Labels esperadas: job, http_status_code, le
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # SLI: Availability (Error Rate)
+  # Calcula a fracao de requests com erro (5xx) por job em diversas janelas
+  # ---------------------------------------------------------------------------
+  - name: sli:availability
+    interval: 1m
+    rules:
+      # Error rate por job - janelas para burn rate alerts
+      - record: sli:http_error_rate:ratio_rate5m
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[5m]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[5m]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[5m])) * 0)
+
+      - record: sli:http_error_rate:ratio_rate30m
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[30m]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[30m]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[30m])) * 0)
+
+      - record: sli:http_error_rate:ratio_rate1h
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[1h]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[1h]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[1h])) * 0)
+
+      - record: sli:http_error_rate:ratio_rate6h
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[6h]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[6h]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[6h])) * 0)
+
+      - record: sli:http_error_rate:ratio_rate1d
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[1d]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[1d]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[1d])) * 0)
+
+      - record: sli:http_error_rate:ratio_rate3d
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[3d]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[3d]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[3d])) * 0)
+
+      - record: sli:http_error_rate:ratio_rate30d
+        expr: |
+          (
+            sum by (job) (rate(http_server_duration_milliseconds_count{http_status_code=~"5.."}[30d]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[30d]))
+          ) or (sum by (job) (rate(http_server_duration_milliseconds_count[30d])) * 0)
+
+      # Availability (1 - error_rate) - util para dashboards
+      - record: sli:http_availability:ratio_rate1h
+        expr: 1 - sli:http_error_rate:ratio_rate1h
+
+      - record: sli:http_availability:ratio_rate1d
+        expr: 1 - sli:http_error_rate:ratio_rate1d
+
+  # ---------------------------------------------------------------------------
+  # SLI: Latency
+  # Calcula percentis de latencia e fracao de requests acima do threshold
+  # ---------------------------------------------------------------------------
+  - name: sli:latency
+    interval: 1m
+    rules:
+      # P50, P95, P99 por job
+      - record: sli:http_latency_p50:5m
+        expr: |
+          histogram_quantile(0.50,
+            sum by (job, le) (rate(http_server_duration_milliseconds_bucket[5m]))
+          )
+
+      - record: sli:http_latency_p95:5m
+        expr: |
+          histogram_quantile(0.95,
+            sum by (job, le) (rate(http_server_duration_milliseconds_bucket[5m]))
+          )
+
+      - record: sli:http_latency_p99:5m
+        expr: |
+          histogram_quantile(0.99,
+            sum by (job, le) (rate(http_server_duration_milliseconds_bucket[5m]))
+          )
+
+      - record: sli:http_latency_p99:1h
+        expr: |
+          histogram_quantile(0.99,
+            sum by (job, le) (rate(http_server_duration_milliseconds_bucket[1h]))
+          )
+
+      # Fracao de requests com latencia > 500ms (threshold Tier 1)
+      - record: sli:http_latency_above_500ms:ratio_rate5m
+        expr: |
+          1 - (
+            sum by (job) (rate(http_server_duration_milliseconds_bucket{le="500"}[5m]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[5m]))
+          )
+
+      - record: sli:http_latency_above_500ms:ratio_rate1h
+        expr: |
+          1 - (
+            sum by (job) (rate(http_server_duration_milliseconds_bucket{le="500"}[1h]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[1h]))
+          )
+
+      - record: sli:http_latency_above_500ms:ratio_rate6h
+        expr: |
+          1 - (
+            sum by (job) (rate(http_server_duration_milliseconds_bucket{le="500"}[6h]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[6h]))
+          )
+
+      # Fracao de requests com latencia > 1000ms (threshold Tier 2)
+      - record: sli:http_latency_above_1s:ratio_rate5m
+        expr: |
+          1 - (
+            sum by (job) (rate(http_server_duration_milliseconds_bucket{le="1000"}[5m]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[5m]))
+          )
+
+      - record: sli:http_latency_above_1s:ratio_rate1h
+        expr: |
+          1 - (
+            sum by (job) (rate(http_server_duration_milliseconds_bucket{le="1000"}[1h]))
+            /
+            sum by (job) (rate(http_server_duration_milliseconds_count[1h]))
+          )
+
+  # ---------------------------------------------------------------------------
+  # SLI: Throughput
+  # Request rate por job
+  # ---------------------------------------------------------------------------
+  - name: sli:throughput
+    interval: 1m
+    rules:
+      - record: sli:http_requests:rate5m
+        expr: sum by (job) (rate(http_server_duration_milliseconds_count[5m]))
+
+      - record: sli:http_requests:rate1h
+        expr: sum by (job) (rate(http_server_duration_milliseconds_count[1h]))
+
+      # Request rate por status code (para dashboards)
+      - record: sli:http_requests_by_status:rate5m
+        expr: sum by (job, http_status_code) (rate(http_server_duration_milliseconds_count[5m]))
+
+  # ---------------------------------------------------------------------------
+  # SLO: Burn Rate (Multi-Window)
+  # Burn rate = error_rate / (1 - slo_target)
+  # Para SLO 99.9% (0.999): error_budget = 0.001
+  # Burn rate 1 = consumindo budget no ritmo exato para esgotar em 30d
+  # Burn rate 14.4 = esgota em ~2h (alerta rapido)
+  # Burn rate 6 = esgota em ~5h (alerta medio)
+  # Burn rate 1 = esgota em 30d (cronico)
+  # ---------------------------------------------------------------------------
+  - name: slo:burn_rate
+    interval: 1m
+    rules:
+      # Burn rate com error_budget = 0.001 (SLO 99.9% - Tier 1)
+      - record: slo:burn_rate_tier1:1h
+        expr: sli:http_error_rate:ratio_rate1h / 0.001
+
+      - record: slo:burn_rate_tier1:6h
+        expr: sli:http_error_rate:ratio_rate6h / 0.001
+
+      - record: slo:burn_rate_tier1:1d
+        expr: sli:http_error_rate:ratio_rate1d / 0.001
+
+      - record: slo:burn_rate_tier1:3d
+        expr: sli:http_error_rate:ratio_rate3d / 0.001
+
+      # Burn rate com error_budget = 0.005 (SLO 99.5% - Tier 2)
+      - record: slo:burn_rate_tier2:1h
+        expr: sli:http_error_rate:ratio_rate1h / 0.005
+
+      - record: slo:burn_rate_tier2:6h
+        expr: sli:http_error_rate:ratio_rate6h / 0.005
+
+      - record: slo:burn_rate_tier2:1d
+        expr: sli:http_error_rate:ratio_rate1d / 0.005
+
+      - record: slo:burn_rate_tier2:3d
+        expr: sli:http_error_rate:ratio_rate3d / 0.005
+
+      # Burn rate com error_budget = 0.01 (SLO 99.0% - Tier 3)
+      - record: slo:burn_rate_tier3:1h
+        expr: sli:http_error_rate:ratio_rate1h / 0.01
+
+      - record: slo:burn_rate_tier3:6h
+        expr: sli:http_error_rate:ratio_rate6h / 0.01
+
+      - record: slo:burn_rate_tier3:1d
+        expr: sli:http_error_rate:ratio_rate1d / 0.01
+
+      - record: slo:burn_rate_tier3:3d
+        expr: sli:http_error_rate:ratio_rate3d / 0.01
+
+      # Error budget consumed (%) nos ultimos 30 dias
+      # budget_consumed = error_rate_30d / error_budget
+      - record: slo:error_budget_consumed_tier1:ratio
+        expr: |
+          (
+            sli:http_error_rate:ratio_rate30d / 0.001
+          ) or vector(0)
+
+      - record: slo:error_budget_consumed_tier2:ratio
+        expr: |
+          (
+            sli:http_error_rate:ratio_rate30d / 0.005
+          ) or vector(0)
+
+      # Error budget remaining (%)
+      - record: slo:error_budget_remaining_tier1:ratio
+        expr: 1 - clamp_max(slo:error_budget_consumed_tier1:ratio, 1)
+
+      - record: slo:error_budget_remaining_tier2:ratio
+        expr: 1 - clamp_max(slo:error_budget_consumed_tier2:ratio, 1)
+
+      # Error budget exhaustion time (hours)
+      # Calcula em quantas horas o budget se esgota no ritmo atual de burn rate
+      # 720h = 30 dias (janela SLO)
+      - record: slo:error_budget_exhaustion_hours_tier1
+        expr: |
+          (slo:error_budget_remaining_tier1:ratio * 720) /
+          clamp_min(slo:burn_rate_tier1:1h, 0.001)
+
+      - record: slo:error_budget_exhaustion_hours_tier2
+        expr: |
+          (slo:error_budget_remaining_tier2:ratio * 720) /
+          clamp_min(slo:burn_rate_tier2:1h, 0.001)
+
+  # ---------------------------------------------------------------------------
+  # Anomaly Detection (Sprint 4 - AIOps)
+  # Z-score e bandas estatisticas sobre SLI recording rules
+  # Z-score > 3 = anomalia (3 desvios padrao da media)
+  # clamp_min no stddev evita divisao por zero
+  # ---------------------------------------------------------------------------
+  - name: anomaly:detection
+    interval: 1m
+    rules:
+      # --- Error Rate ---
+      # Z-score 1h: (valor_atual - media_1h) / stddev_1h
+      - record: anomaly:http_error_rate:zscore_1h
+        expr: |
+          (
+            sli:http_error_rate:ratio_rate5m
+            - avg_over_time(sli:http_error_rate:ratio_rate5m[1h])
+          )
+          /
+          clamp_min(stddev_over_time(sli:http_error_rate:ratio_rate5m[1h]), 0.001)
+
+      # Z-score 6h: janela longa para tendencias
+      - record: anomaly:http_error_rate:zscore_6h
+        expr: |
+          (
+            sli:http_error_rate:ratio_rate5m
+            - avg_over_time(sli:http_error_rate:ratio_rate5m[6h])
+          )
+          /
+          clamp_min(stddev_over_time(sli:http_error_rate:ratio_rate5m[6h]), 0.001)
+
+      # Banda superior: mean + 3*stddev
+      - record: anomaly:http_error_rate:upper_band_1h
+        expr: |
+          avg_over_time(sli:http_error_rate:ratio_rate5m[1h])
+          + 3 * clamp_min(stddev_over_time(sli:http_error_rate:ratio_rate5m[1h]), 0.001)
+
+      # Banda inferior: mean - 3*stddev
+      - record: anomaly:http_error_rate:lower_band_1h
+        expr: |
+          avg_over_time(sli:http_error_rate:ratio_rate5m[1h])
+          - 3 * clamp_min(stddev_over_time(sli:http_error_rate:ratio_rate5m[1h]), 0.001)
+
+      # --- Latency P95 ---
+      - record: anomaly:http_latency_p95:zscore_1h
+        expr: |
+          (
+            sli:http_latency_p95:5m
+            - avg_over_time(sli:http_latency_p95:5m[1h])
+          )
+          /
+          clamp_min(stddev_over_time(sli:http_latency_p95:5m[1h]), 0.001)
+
+      - record: anomaly:http_latency_p95:zscore_6h
+        expr: |
+          (
+            sli:http_latency_p95:5m
+            - avg_over_time(sli:http_latency_p95:5m[6h])
+          )
+          /
+          clamp_min(stddev_over_time(sli:http_latency_p95:5m[6h]), 0.001)
+
+      - record: anomaly:http_latency_p95:upper_band_1h
+        expr: |
+          avg_over_time(sli:http_latency_p95:5m[1h])
+          + 3 * clamp_min(stddev_over_time(sli:http_latency_p95:5m[1h]), 0.001)
+
+      - record: anomaly:http_latency_p95:lower_band_1h
+        expr: |
+          avg_over_time(sli:http_latency_p95:5m[1h])
+          - 3 * clamp_min(stddev_over_time(sli:http_latency_p95:5m[1h]), 0.001)
+
+      # --- Throughput ---
+      - record: anomaly:http_throughput:zscore_1h
+        expr: |
+          (
+            sli:http_requests:rate5m
+            - avg_over_time(sli:http_requests:rate5m[1h])
+          )
+          /
+          clamp_min(stddev_over_time(sli:http_requests:rate5m[1h]), 0.001)
+
+      - record: anomaly:http_throughput:zscore_6h
+        expr: |
+          (
+            sli:http_requests:rate5m
+            - avg_over_time(sli:http_requests:rate5m[6h])
+          )
+          /
+          clamp_min(stddev_over_time(sli:http_requests:rate5m[6h]), 0.001)
+
+      - record: anomaly:http_throughput:upper_band_1h
+        expr: |
+          avg_over_time(sli:http_requests:rate5m[1h])
+          + 3 * clamp_min(stddev_over_time(sli:http_requests:rate5m[1h]), 0.001)
+
+      - record: anomaly:http_throughput:lower_band_1h
+        expr: |
+          avg_over_time(sli:http_requests:rate5m[1h])
+          - 3 * clamp_min(stddev_over_time(sli:http_requests:rate5m[1h]), 0.001)
+
+      # --- Predictive Storage ---
+      # Prediz tamanho do TSDB em 7 dias (bytes)
+      - record: anomaly:prometheus_storage:predict_bytes_7d
+        expr: |
+          predict_linear(prometheus_tsdb_storage_blocks_bytes[6h], 7 * 24 * 3600)
+
+      # Taxa de crescimento de series ativas (series/dia)
+      - record: anomaly:prometheus_tsdb:series_growth_rate_1d
+        expr: |
+          deriv(prometheus_tsdb_head_series[1d]) * 86400
+
+  # ---------------------------------------------------------------------------
+  # Incident Metrics (Sprint 5 - Incident Intelligence)
+  # Metricas para correlacao e dashboard de incidentes
+  # ---------------------------------------------------------------------------
+  - name: incident:metrics
+    interval: 60s
+    rules:
+      # Total de alertas firing por servico e severity
+      - record: incident:alerts_firing:count
+        expr: count by (job, severity) (ALERTS{alertstate="firing"})
+
+      # Total de alertas firing globalmente
+      - record: incident:alerts_firing:total
+        expr: count(ALERTS{alertstate="firing"}) or vector(0)
+
+      # Servicos com alertas criticos simultaneos (blast radius)
+      - record: incident:blast_radius:services
+        expr: count(count by (job) (ALERTS{alertstate="firing", severity="critical"}))
+
+      # Co-ocorrencia: servicos com 2+ alertas simultaneos
+      - record: incident:correlated_alerts:count
+        expr: |
+          count by (job) (
+            ALERTS{alertstate="firing"}
+          ) >= 2
+
+      # Taxa de alertas novos (ultimos 30min)
+      - record: incident:alert_rate:30m
+        expr: changes(ALERTS{alertstate="firing"}[30m])
+
+  # ---------------------------------------------------------------------------
+  # LLM Cost Tracking (LiteLLM Prometheus metrics)
+  # Pre-computa custo acumulado por modelo, provider e período
+  # ---------------------------------------------------------------------------
+  - name: llm:cost_tracking
+    interval: 1m
+    rules:
+      # Total spend acumulado por modelo
+      - record: llm:spend_total:by_model
+        expr: |
+          sum by (model) (
+            litellm_spend_metric or vector(0)
+          )
+
+      # Tokens totais por modelo e direção
+      - record: llm:tokens_total:by_model
+        expr: |
+          sum by (model) (
+            litellm_total_tokens or vector(0)
+          )
+
+      # Requests por modelo (rate 5m)
+      - record: llm:requests:rate5m
+        expr: |
+          sum by (model) (
+            rate(litellm_requests_metric[5m])
+          )
+
+      # Latência P95 por modelo
+      - record: llm:latency_p95:by_model
+        expr: |
+          histogram_quantile(0.95,
+            sum by (model, le) (
+              rate(litellm_request_duration_metric_bucket[5m])
+            )
+          )
+
+      # Custo diário estimado (projeção baseada na última 1h)
+      - record: llm:cost_daily_estimate
+        expr: |
+          sum(increase(litellm_spend_metric[1h])) * 24
+
+      # Budget burn rate (quanto do $50/mês foi consumido)
+      - record: llm:budget_burn_rate
+        expr: |
+          sum(litellm_spend_metric) / 50 * 100

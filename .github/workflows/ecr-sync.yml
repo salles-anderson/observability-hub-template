@@ -1,0 +1,320 @@
+name: ECR Image Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Image to sync (all, or specific image name)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - grafana
+          - prometheus
+          - loki
+          - tempo
+          - alloy
+          - alertmanager
+          - k6
+          - litellm
+          - mcp-grafana
+          - mcp-aws
+          - mcp-github
+          - mcp-tfc
+          - mcp-qdrant
+          - aiops-agent
+          - chainlit-chat
+          - qdrant
+          - fluent-bit
+          - busybox
+  push:
+    branches: [main]
+    paths:
+      - 'docker/**'
+      - 'docs/**'
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: YOUR_HUB_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+  ECR_PREFIX: obs-hub
+  ECS_CLUSTER: cluster-prod
+  SERVICE_PREFIX: obs-hub-prod
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Step 1: Detect which docker images changed (only on push)
+  # ---------------------------------------------------------------------------
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_images: ${{ steps.detect.outputs.changed_images }}
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed images
+        id: detect
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual trigger — use the selected image
+            echo "changed_images=${{ github.event.inputs.image }}" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Manual trigger: ${{ github.event.inputs.image }}"
+            exit 0
+          fi
+
+          # Push trigger — detect changed paths
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          CHANGED_IMAGES=""
+
+          # Map directories to image names
+          declare -A DIR_TO_IMAGE=(
+            ["docker/chainlit-chat"]="chainlit-chat"
+            ["docker/grafana"]="grafana"
+            ["docker/mcp-grafana"]="mcp-grafana"
+            ["docker/mcp-aws"]="mcp-aws"
+            ["docker/mcp-github"]="mcp-github"
+            ["docker/mcp-tfc"]="mcp-tfc"
+            ["docker/mcp-qdrant"]="mcp-qdrant"
+            ["docker/aiops-agent"]="aiops-agent"
+          )
+
+          for dir in "${!DIR_TO_IMAGE[@]}"; do
+            if echo "$CHANGED_FILES" | grep -q "^${dir}/"; then
+              img="${DIR_TO_IMAGE[$dir]}"
+              CHANGED_IMAGES="${CHANGED_IMAGES:+${CHANGED_IMAGES},}${img}"
+              echo "Detected change in: ${img} (from ${dir}/)"
+            fi
+          done
+
+          # docs/ changes affect chainlit-chat (RAG docs are copied into build)
+          if echo "$CHANGED_FILES" | grep -q "^docs/"; then
+            if [[ "$CHANGED_IMAGES" != *"chainlit-chat"* ]]; then
+              CHANGED_IMAGES="${CHANGED_IMAGES:+${CHANGED_IMAGES},}chainlit-chat"
+              echo "Detected change in: chainlit-chat (from docs/)"
+            fi
+          fi
+
+          if [[ -z "$CHANGED_IMAGES" ]]; then
+            echo "No custom image changes detected"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "changed_images=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Images to build: $CHANGED_IMAGES"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "changed_images=$CHANGED_IMAGES" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Step 2: Build & deploy only the changed images
+  # ---------------------------------------------------------------------------
+  sync:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: grafana
+            source: grafana/grafana:11.4.0
+            ecs_service: grafana
+            custom_build: true
+            docker_context: docker/grafana/
+            build_args: GRAFANA_VERSION
+          - name: prometheus
+            source: prom/prometheus:v2.54.1
+            ecs_service: prometheus
+            custom_build: false
+          - name: loki
+            source: grafana/loki:2.9.10
+            ecs_service: loki
+            custom_build: false
+          - name: tempo
+            source: grafana/tempo:2.4.0
+            ecs_service: tempo
+            custom_build: false
+          - name: alloy
+            source: grafana/alloy:v1.8.1
+            ecs_service: alloy
+            custom_build: false
+          - name: alertmanager
+            source: prom/alertmanager:v0.27.0
+            ecs_service: alertmanager
+            custom_build: false
+          - name: k6
+            source: grafana/k6:0.54.0
+            ecs_service: ""
+            custom_build: false
+          - name: litellm
+            source: ghcr.io/berriai/litellm:main-stable
+            ecs_service: litellm
+            custom_build: false
+          - name: mcp-grafana
+            source: mcp-grafana:v0.11.0
+            ecs_service: ""
+            custom_build: true
+            docker_context: docker/mcp-grafana/
+            build_args: MCP_GRAFANA_VERSION
+          - name: mcp-aws
+            source: mcp-aws:latest
+            ecs_service: ""
+            custom_build: true
+            docker_context: docker/mcp-aws/
+            build_args: ""
+          - name: mcp-github
+            source: mcp-github:latest
+            ecs_service: ""
+            custom_build: true
+            docker_context: docker/mcp-github/
+            build_args: ""
+          - name: mcp-tfc
+            source: mcp-tfc:latest
+            ecs_service: ""
+            custom_build: true
+            docker_context: docker/mcp-tfc/
+            build_args: ""
+          - name: mcp-qdrant
+            source: mcp-qdrant:latest
+            ecs_service: ""
+            custom_build: true
+            docker_context: docker/mcp-qdrant/
+            build_args: ""
+          - name: aiops-agent
+            source: aiops-agent:latest
+            ecs_service: ""
+            custom_build: true
+            docker_context: docker/aiops-agent/
+            build_args: ""
+          - name: chainlit-chat
+            source: chainlit-chat:latest
+            ecs_service: chainlit-chat
+            custom_build: true
+            docker_context: docker/chainlit-chat/
+            build_args: ""
+          - name: qdrant
+            source: qdrant/qdrant:v1.13.2
+            ecs_service: qdrant
+            custom_build: false
+          - name: fluent-bit
+            source: fluent/fluent-bit:3.2
+            ecs_service: ""
+            custom_build: false
+          - name: busybox
+            source: busybox:1.36
+            ecs_service: ""
+            custom_build: false
+
+    steps:
+      - name: Check if should run
+        id: check
+        run: |
+          CHANGED="${{ needs.detect-changes.outputs.changed_images }}"
+
+          # workflow_dispatch with "all" — run everything
+          if [[ "$CHANGED" == "all" ]]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # workflow_dispatch with specific image — match exactly
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "$CHANGED" == "${{ matrix.name }}" ]]; then
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+
+          # push trigger — check if this image is in the changed list
+          if echo ",$CHANGED," | grep -q ",${{ matrix.name }},"; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "${{ matrix.name }} is in changed list — will build"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "${{ matrix.name }} not changed — skipping"
+          fi
+
+      - name: Checkout repository
+        if: steps.check.outputs.skip == 'false' && matrix.custom_build == true
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        if: steps.check.outputs.skip == 'false'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: steps.check.outputs.skip == 'false'
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Prepare chainlit-chat build context
+        if: steps.check.outputs.skip == 'false' && matrix.name == 'chainlit-chat'
+        run: |
+          echo "Copying docs/ into chainlit-chat build context"
+          cp -r docs/ docker/chainlit-chat/docs/
+
+      - name: Build custom image
+        if: steps.check.outputs.skip == 'false' && matrix.custom_build == true
+        run: |
+          TAG="${{ matrix.source }}"
+          TAG="${TAG##*:}"
+          TARGET="${{ env.ECR_REGISTRY }}/${{ env.ECR_PREFIX }}/${{ matrix.name }}:${TAG}"
+
+          echo "Building custom ${{ matrix.name }} from ${{ matrix.docker_context }}"
+          echo "Target: ${TARGET}"
+
+          BUILD_ARGS=""
+          if [[ -n "${{ matrix.build_args }}" ]]; then
+            BUILD_ARGS="--build-arg ${{ matrix.build_args }}=${TAG}"
+          fi
+
+          docker build \
+            ${BUILD_ARGS} \
+            -t "${TARGET}" \
+            ${{ matrix.docker_context }}
+
+          docker push "${TARGET}"
+
+          echo "### :white_check_mark: ${{ matrix.name }}:${TAG} (custom build) synced to ECR" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pull, tag and push
+        if: steps.check.outputs.skip == 'false' && matrix.custom_build == false
+        run: |
+          SOURCE="${{ matrix.source }}"
+          TAG="${SOURCE##*:}"
+          TARGET="${{ env.ECR_REGISTRY }}/${{ env.ECR_PREFIX }}/${{ matrix.name }}:${TAG}"
+
+          echo "Source: ${SOURCE}"
+          echo "Target: ${TARGET}"
+
+          docker pull "${SOURCE}"
+          docker tag "${SOURCE}" "${TARGET}"
+          docker push "${TARGET}"
+
+          echo "### :white_check_mark: ${{ matrix.name }}:${TAG} synced to ECR" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Force new ECS deployment
+        if: steps.check.outputs.skip == 'false' && matrix.ecs_service != ''
+        run: |
+          SERVICE="${{ env.SERVICE_PREFIX }}-${{ matrix.ecs_service }}"
+          echo "Forcing new deployment: ${SERVICE}"
+
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service "${SERVICE}" \
+            --force-new-deployment \
+            --no-cli-pager
+
+          echo "### :rocket: ECS service ${SERVICE} redeployed" >> "$GITHUB_STEP_SUMMARY"
