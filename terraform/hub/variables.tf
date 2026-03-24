@@ -378,9 +378,9 @@ variable "spoke_account_ids" {
     "YOUR_HML_ACCOUNT_ID",  # YOUR_ORG-Homolog
     "YOUR_PRD_ACCOUNT_ID",  # YOUR_ORG-Prod
     "YOUR_CAPITAL_ACCOUNT_ID",  # Capital
-    "131602690665",  # HubDigital
+    "YOUR_HUBDIGITAL_ACCOUNT_ID",  # HubDigital
     "823557601977",  # CloudTrail
-    "195835301200",  # Admin
+    "YOUR_ADMIN_ACCOUNT_ID",  # Admin
     "YOUR_INFRA_ACCOUNT_ID",  # Infra
   ]
 }
