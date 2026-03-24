@@ -1,0 +1,102 @@
+{
+  "uid": "teck-home-overview",
+  "title": "Teck Observability Hub — Home",
+  "description": "Overview executivo — status de todos os projetos, alertas, SLOs",
+  "tags": ["home", "overview", "teck"],
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "panels": [
+    {
+      "id": 1, "type": "text", "title": "",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 3},
+      "options": {
+        "mode": "html",
+        "content": "<div style='text-align:center; padding:10px 0;'><img src='/public/img/teck-logo-white.png' width='200' style='margin-bottom:8px'/><h2 style='color:#e0e0ff; margin:0; font-weight:400; letter-spacing:1px;'>Observability Hub</h2><p style='color:#90CAF9; margin:4px 0 0; font-size:12px;'>Monitoramento centralizado — 11 contas AWS</p></div>"
+      }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Alertas Ativos",
+      "gridPos": {"x": 0, "y": 3, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "dfayih0fcmozkc"},
+      "targets": [{"refId": "A", "expr": "count(ALERTS{alertstate=\"firing\"}) or vector(0)"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 3}]}}},
+      "options": {"colorMode": "background", "graphMode": "none"}
+    },
+    {
+      "id": 3, "type": "stat", "title": "Example API Error Rate",
+      "gridPos": {"x": 6, "y": 3, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "dfayih0fcmozkc"},
+      "targets": [{"refId": "A", "expr": "sli:http_error_rate:ratio_rate1h{job=\"example-api-api\"} * 100"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 2, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}]}}},
+      "options": {"colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "id": 4, "type": "stat", "title": "Example API Latência P95",
+      "gridPos": {"x": 12, "y": 3, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "dfayih0fcmozkc"},
+      "targets": [{"refId": "A", "expr": "sli:http_latency_p95:5m{job=\"example-api-api\"} * 1000"}],
+      "fieldConfig": {"defaults": {"unit": "ms", "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 200}, {"color": "red", "value": 500}]}}},
+      "options": {"colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "id": 5, "type": "stat", "title": "Example API Disponibilidade",
+      "gridPos": {"x": 18, "y": 3, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "dfayih0fcmozkc"},
+      "targets": [{"refId": "A", "expr": "sli:http_availability:ratio_rate1d{job=\"example-api-api\"} * 100"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 2, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 99}, {"color": "green", "value": 99.9}]}}},
+      "options": {"colorMode": "background", "graphMode": "area"}
+    },
+    {
+      "id": 10, "type": "row", "title": "Projetos", "gridPos": {"x": 0, "y": 7, "w": 24, "h": 1}
+    },
+    {
+      "id": 11, "type": "text", "title": "",
+      "gridPos": {"x": 0, "y": 8, "w": 8, "h": 6},
+      "options": {
+        "mode": "html",
+        "content": "<div style='padding:16px;'><h3 style='color:#5e9ff5; margin:0 0 8px;'>🔐 Example API</h3><p style='color:#ccc; font-size:13px; margin:4px 0 12px;'>Assinatura digital com KYC/FaceTec</p><div style='display:flex; gap:8px; margin-bottom:12px;'><a href='/dashboards/f/acct-yourorg-dev-example-api/example-api' style='background:#1a4d1a; color:#4ade80; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600; text-decoration:none;'>DEV</a><a href='/dashboards/f/acct-yourorg-homolog-example-api/example-api' style='background:#4d4d1a; color:#fbbf24; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600; text-decoration:none;'>HML</a><a href='/dashboards/f/acct-yourorg-prod-example-api/example-api' style='background:#4d1a1a; color:#f87171; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600; text-decoration:none;'>PRD</a></div><ul style='color:#aaa; font-size:12px; padding-left:20px; margin:0;'><li><a href='/d/example-api-dev-business-kpis' style='color:#5e9ff5'>Business KPIs</a></li><li><a href='/d/example-api-dev-kyc-facetec' style='color:#5e9ff5'>KYC / FaceTec</a></li><li><a href='/d/example-api-dev-rds' style='color:#5e9ff5'>RDS DBA</a></li><li><a href='/d/slo-overview' style='color:#5e9ff5'>SLO Overview</a></li></ul></div>"
+      }
+    },
+    {
+      "id": 12, "type": "text", "title": "",
+      "gridPos": {"x": 8, "y": 8, "w": 8, "h": 6},
+      "options": {
+        "mode": "html",
+        "content": "<div style='padding:16px;'><h3 style='color:#4FC3F7; margin:0 0 8px;'>💰 Solis</h3><p style='color:#ccc; font-size:13px; margin:4px 0 12px;'>Cessão de crédito / CCBs</p><div style='display:flex; gap:8px; margin-bottom:12px;'><a href='/dashboards/f/acct-akrk-dev/akrk-dev' style='background:#4d1a1a; color:#f87171; padding:4px 10px; border-radius:4px; font-size:11px; font-weight:600; text-decoration:none;'>PROD</a></div><ul style='color:#aaa; font-size:12px; padding-left:20px; margin:0;'><li><a href='/d/solis-prod-api-overview' style='color:#4FC3F7'>API Overview</a></li><li><a href='/d/solis-prod-ecs-metrics' style='color:#4FC3F7'>ECS Metrics</a></li><li><a href='/d/solis-prod-logs' style='color:#4FC3F7'>Logs</a></li><li><a href='/d/solis-prod-traces' style='color:#4FC3F7'>Traces</a></li></ul></div>"
+      }
+    },
+    {
+      "id": 13, "type": "text", "title": "",
+      "gridPos": {"x": 16, "y": 8, "w": 8, "h": 6},
+      "options": {
+        "mode": "html",
+        "content": "<div style='padding:16px;'><h3 style='color:#81C784; margin:0 0 12px;'>🤖 AIOps Hub</h3><p style='color:#ccc; font-size:13px; margin:4px 0;'>AI Assistant + MCP Servers</p><ul style='color:#aaa; font-size:12px; padding-left:20px; margin-top:12px;'><li><a href='/d/agent-operations' style='color:#81C784'>Agent Operations</a></li><li><a href='/d/llm-cost-center' style='color:#81C784'>LLM Cost Center</a></li><li><a href='/d/incident-overview' style='color:#81C784'>Incident Intelligence</a></li><li><a href='/d/slo-overview' style='color:#81C784'>SLO Overview</a></li><li><a href='https://assistant.observability.tower.yourorg.com.br' style='color:#81C784'>AI Assistant (Chat)</a></li></ul></div>"
+      }
+    },
+    {
+      "id": 20, "type": "row", "title": "Métricas Globais", "gridPos": {"x": 0, "y": 14, "w": 24, "h": 1}
+    },
+    {
+      "id": 21, "type": "timeseries", "title": "Request Rate — Todos os Serviços",
+      "gridPos": {"x": 0, "y": 15, "w": 12, "h": 7},
+      "datasource": {"type": "prometheus", "uid": "dfayih0fcmozkc"},
+      "targets": [
+        {"refId": "A", "expr": "sum(sli:http_requests:rate5m{job=\"example-api-api\"})", "legendFormat": "Example API"},
+        {"refId": "B", "expr": "sum(rate(http_requests_total{job=\"kong-gateway-prod\"}[5m]))", "legendFormat": "Kong Gateway"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "reqps", "custom": {"fillOpacity": 20}}}
+    },
+    {
+      "id": 22, "type": "timeseries", "title": "Error Rate — Todos os Serviços",
+      "gridPos": {"x": 12, "y": 15, "w": 12, "h": 7},
+      "datasource": {"type": "prometheus", "uid": "dfayih0fcmozkc"},
+      "targets": [
+        {"refId": "A", "expr": "sli:http_error_rate:ratio_rate1h{job=\"example-api-api\"} * 100", "legendFormat": "Example API"},
+        {"refId": "B", "expr": "sum(rate(http_requests_total{job=\"kong-gateway-prod\",code=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"kong-gateway-prod\"}[5m])) * 100", "legendFormat": "Kong Gateway"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent", "custom": {"fillOpacity": 20}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 5}]}}}
+    }
+  ],
+  "schemaVersion": 39
+}

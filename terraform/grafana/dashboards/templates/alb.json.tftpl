@@ -1,0 +1,177 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Metricas CloudWatch do Application Load Balancer - Requests, Latency, HTTP Status, Connections",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "Request Count", "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ApplicationELB",
+        "metricName": "RequestCount",
+        "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] },
+        "matchExact": true,
+        "statistic": "Sum",
+        "statistics": ["Sum"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 2, "title": "Response Time (Avg)", "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ApplicationELB",
+        "metricName": "TargetResponseTime",
+        "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 1 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 3, "title": "Active Connections", "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ApplicationELB",
+        "metricName": "ActiveConnectionCount",
+        "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 4, "title": "5XX Errors", "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ApplicationELB",
+        "metricName": "HTTPCode_Target_5XX_Count",
+        "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] },
+        "matchExact": true,
+        "statistic": "Sum",
+        "statistics": ["Sum"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "noValue": "0", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 10 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" }
+    },
+    {
+      "id": 5, "title": "Request Count Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ApplicationELB",
+        "metricName": "RequestCount",
+        "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] },
+        "matchExact": true,
+        "statistic": "Sum",
+        "statistics": ["Sum"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics",
+        "alias": "Requests"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20, "gradientMode": "scheme" } } }
+    },
+    {
+      "id": 6, "title": "Response Time Over Time", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "TargetResponseTime", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Avg" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "TargetResponseTime", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "p95", "statistics": ["p95"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "p95" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 1 }] } } }
+    },
+    {
+      "id": 7, "title": "HTTP Status Codes (Target)", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_Target_2XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "2XX" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_Target_3XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "3XX" },
+        { "refId": "C", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_Target_4XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "4XX" },
+        { "refId": "D", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_Target_5XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "5XX" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "2XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "3XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "4XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "5XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 8, "title": "HTTP Status Codes (ELB)", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_ELB_3XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "ELB 3XX" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_ELB_4XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "ELB 4XX" },
+        { "refId": "C", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "HTTPCode_ELB_5XX_Count", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "ELB 5XX" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "ELB 3XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "ELB 4XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "ELB 5XX" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 9, "title": "Connections", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 21, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "ActiveConnectionCount", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Active" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "NewConnectionCount", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "New" },
+        { "refId": "C", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "RejectedConnectionCount", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Rejected" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Rejected" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 10, "title": "Target Health & Errors", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 21, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "TargetConnectionErrorCount", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Connection Errors" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "TargetTLSNegotiationErrorCount", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "TLS Errors" },
+        { "refId": "C", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ApplicationELB", "metricName": "UnHealthyHostCount", "dimensions": { "LoadBalancer": ["${alb_arn_suffix}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Unhealthy Hosts" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Connection Errors" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "TLS Errors" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Unhealthy Hosts" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    }
+  ],
+  "schemaVersion": 39
+}

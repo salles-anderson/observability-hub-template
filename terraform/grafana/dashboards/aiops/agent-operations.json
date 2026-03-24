@@ -1,0 +1,137 @@
+{
+  "uid": "agent-operations",
+  "title": "Agent Operations — AG-5 + MCP",
+  "description": "Monitoramento dos AI Agents: queries, tool calls, latência, erros, cache",
+  "tags": ["aiops", "agent", "mcp", "observability"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {"id": 1, "title": "Agent Health", "type": "row", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}},
+    {
+      "id": 2, "title": "chainlit-chat", "type": "stat",
+      "gridPos": {"x": 0, "y": 1, "w": 4, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 3, "title": "litellm", "type": "stat",
+      "gridPos": {"x": 4, "y": 1, "w": 4, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"litellm\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 4, "title": "mcp-aws", "type": "stat",
+      "gridPos": {"x": 8, "y": 1, "w": 3, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"mcp-aws\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 5, "title": "mcp-github", "type": "stat",
+      "gridPos": {"x": 11, "y": 1, "w": 3, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"mcp-github\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 6, "title": "mcp-tfc", "type": "stat",
+      "gridPos": {"x": 14, "y": 1, "w": 3, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"mcp-tfc\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 7, "title": "mcp-qdrant", "type": "stat",
+      "gridPos": {"x": 17, "y": 1, "w": 3, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"mcp-qdrant\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 8, "title": "aiops-agent", "type": "stat",
+      "gridPos": {"x": 18, "y": 1, "w": 3, "h": 4},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"aiops-agent\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 30, "title": "mcp-confluence", "type": "stat",
+      "gridPos": {"x": 21, "y": 1, "w": 3, "h": 2},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"mcp-confluence\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {
+      "id": 31, "title": "mcp-eraser", "type": "stat",
+      "gridPos": {"x": 21, "y": 3, "w": 3, "h": 2},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"mcp-eraser\"} [5m])"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "IDLE", "color": "yellow"}}}, {"type": "range", "options": {"from": 1, "to": 999999, "result": {"text": "ACTIVE", "color": "green"}}}]}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background"}
+    },
+    {"id": 10, "title": "AG-5 Activity", "type": "row", "gridPos": {"x": 0, "y": 5, "w": 24, "h": 1}},
+    {
+      "id": 11, "title": "AG-5 Turns (tool calls por sessão)", "type": "timeseries",
+      "gridPos": {"x": 0, "y": 6, "w": 12, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"AG-5 turn\" [5m])"}],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 80}}}
+    },
+    {
+      "id": 12, "title": "Claude API Calls", "type": "timeseries",
+      "gridPos": {"x": 12, "y": 6, "w": 12, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"api.anthropic.com\" [5m])", "legendFormat": "Claude API"}],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 80}, "color": {"fixedColor": "purple", "mode": "fixed"}}}
+    },
+    {
+      "id": 13, "title": "MCP Tool Calls por Server", "type": "timeseries",
+      "gridPos": {"x": 0, "y": 14, "w": 12, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [
+        {"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"localhost:8001\" [5m])", "legendFormat": "mcp-aws"},
+        {"refId": "B", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"localhost:8002\" [5m])", "legendFormat": "mcp-github"},
+        {"refId": "C", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"localhost:8003\" [5m])", "legendFormat": "mcp-tfc"},
+        {"refId": "D", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"localhost:8004\" [5m])", "legendFormat": "mcp-qdrant"},
+        {"refId": "E", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"localhost:8005\" [5m])", "legendFormat": "mcp-confluence"},
+        {"refId": "F", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"localhost:8006\" [5m])", "legendFormat": "mcp-eraser"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 60, "stacking": {"mode": "normal"}}}}
+    },
+    {
+      "id": 14, "title": "Semantic Cache (Hit vs Store)", "type": "timeseries",
+      "gridPos": {"x": 12, "y": 14, "w": 12, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [
+        {"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"Cache HIT\" [5m])", "legendFormat": "Cache HIT"},
+        {"refId": "B", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"Cache MISS\" [5m])", "legendFormat": "Cache MISS"},
+        {"refId": "C", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"Cache STORE\" [5m])", "legendFormat": "Cache STORE"}
+      ]
+    },
+    {"id": 20, "title": "Logs", "type": "row", "gridPos": {"x": 0, "y": 22, "w": 24, "h": 1}},
+    {
+      "id": 21, "title": "Agent Errors (todas as fontes)", "type": "logs",
+      "gridPos": {"x": 0, "y": 23, "w": 24, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "{container=~\"chainlit-chat|aiops-agent|mcp-aws|mcp-github|mcp-tfc|mcp-qdrant|litellm\"} |~ \"ERROR|error|Error|failed|timeout|exception\""}]
+    },
+    {
+      "id": 22, "title": "AG-5 Orchestrator Logs", "type": "logs",
+      "gridPos": {"x": 0, "y": 31, "w": 24, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "{container=\"chainlit-chat\"} |= \"orchestrator-ag5\""}]
+    }
+  ],
+  "schemaVersion": 39
+}

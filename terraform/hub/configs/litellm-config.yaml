@@ -1,0 +1,176 @@
+# -----------------------------------------------------------------------------
+# LiteLLM Proxy Configuration - AG-4 / S16
+# -----------------------------------------------------------------------------
+# 3 providers: Anthropic (Sonnet 4.6), Google (Gemini 3.1 Pro), DeepSeek (V3.2)
+# Redis cache for response deduplication — reduces token spend.
+# Prompt caching auto-injection for Claude — 90% cost reduction on system prompts.
+# Provider-level budget routing for cost control.
+# OpenAI-compatible aliases for Grafana LLM plugin + Continue.dev.
+# -----------------------------------------------------------------------------
+
+model_list:
+  # ---------------------------------------------------------------------------
+  # Tier 1 — Claude Sonnet 4.6 (coding, complex analysis, root cause)
+  # Usage: ~20% of requests — Correlator + AG-1 orchestrator
+  # Prompt caching: auto-inject on system messages (90% input token savings)
+  # ---------------------------------------------------------------------------
+  - model_name: claude-sonnet-4.6
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      rpm: 50
+      tpm: 100000
+      cache_control_injection_points:
+        - location: "message"
+          role: "system"
+  - model_name: gpt-4o
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      rpm: 50
+      tpm: 100000
+      cache_control_injection_points:
+        - location: "message"
+          role: "system"
+  - model_name: gpt-4
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      rpm: 50
+      tpm: 100000
+      cache_control_injection_points:
+        - location: "message"
+          role: "system"
+
+  # ---------------------------------------------------------------------------
+  # Tier 2 — Gemini 3.1 Pro Preview (Router AG-2, classification)
+  # Usage: ~25% of requests — Router classifier
+  # ---------------------------------------------------------------------------
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-3.1-pro-preview
+      rpm: 50
+      tpm: 100000
+  - model_name: gpt-4.1
+    litellm_params:
+      model: gemini/gemini-3.1-pro-preview
+      rpm: 50
+      tpm: 100000
+  - model_name: gpt-4.1-mini
+    litellm_params:
+      model: gemini/gemini-3.1-pro-preview
+      rpm: 50
+      tpm: 100000
+
+  # ---------------------------------------------------------------------------
+  # Tier 3 — DeepSeek V3.2 (6 specialized agents, bulk queries)
+  # Usage: ~55% of requests — cheapest provider, auto-upgraded to V3.2
+  # ---------------------------------------------------------------------------
+  - model_name: deepseek-chat
+    litellm_params:
+      model: deepseek/deepseek-chat
+      rpm: 60
+      tpm: 200000
+  - model_name: deepseek-reasoner
+    litellm_params:
+      model: deepseek/deepseek-reasoner
+      rpm: 30
+      tpm: 100000
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: deepseek/deepseek-chat
+      rpm: 60
+      tpm: 200000
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: deepseek/deepseek-chat
+      rpm: 60
+      tpm: 200000
+
+  # ---------------------------------------------------------------------------
+  # Embedding — Bedrock Titan Embed v2 (RAG, Sprint S11)
+  # Uses ECS task IAM role — no API key needed
+  # ---------------------------------------------------------------------------
+  - model_name: text-embedding-titan-v2
+    litellm_params:
+      model: bedrock/amazon.titan-embed-text-v2:0
+      aws_region_name: us-east-1
+
+# -----------------------------------------------------------------------------
+# Router: Fallback chain + retry settings
+# -----------------------------------------------------------------------------
+# Sonnet fails → Gemini Pro. Gemini fails → DeepSeek. DeepSeek fails → Gemini.
+router_settings:
+  num_retries: 2
+  timeout: 60
+  retry_after: 5
+  fallbacks:
+    - claude-sonnet-4.6: [gemini-2.5-pro]
+    - gpt-4o: [gpt-4.1]
+    - gpt-4: [gpt-4.1]
+    - gemini-2.5-pro: [deepseek-chat]
+    - gpt-4.1: [gpt-4o-mini]
+    - deepseek-chat: [gemini-2.5-pro]
+    - gpt-4o-mini: [gpt-4.1-mini]
+    - gpt-3.5-turbo: [gpt-4.1-mini]
+    - deepseek-reasoner: [claude-sonnet-4.6]
+
+# -----------------------------------------------------------------------------
+# LiteLLM Settings: Redis cache, prompt caching, retries
+# -----------------------------------------------------------------------------
+litellm_settings:
+  num_retries: 2
+  request_timeout: 60
+
+  # Redis cache — identical requests served from cache (exact match)
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: 6379
+    ttl: 1800
+    namespace: "litellm_cache"
+    supported_call_types:
+      - "acompletion"
+      - "completion"
+
+  # Prompt caching — Anthropic Claude (reduces cost up to 90% on system prompts)
+  # Auto-injects cache_control breakpoints on system messages
+  cache_control_injection: true
+
+  # Spend tracking + callbacks
+  # Prometheus: exposes /metrics endpoint with token/cost counters
+  # log_raw_request_response: logs full request/response for debugging
+  success_callback: ["prometheus", "log_raw_request_response"]
+  failure_callback: ["prometheus"]
+  service_callback: ["prometheus"]
+  set_verbose: false
+
+# -----------------------------------------------------------------------------
+# Provider Budget Routing (monthly USD per provider)
+# Enforces hard budget limits per AI provider to prevent overruns.
+# -----------------------------------------------------------------------------
+general_settings:
+  max_budget: 30.0
+  budget_duration: "30d"
+  provider_budget_config:
+    anthropic:
+      budget_limit: 20.00
+      time_period: "1mo"
+    deepseek:
+      budget_limit: 5.00
+      time_period: "1mo"
+    gemini:
+      budget_limit: 5.00
+      time_period: "1mo"
+
+model_budget_config:
+  claude-sonnet-4.6:
+    max_budget: 20.0
+    budget_duration: "30d"
+  gemini-2.5-pro:
+    max_budget: 5.0
+    budget_duration: "30d"
+  deepseek-chat:
+    max_budget: 4.0
+    budget_duration: "30d"
+  deepseek-reasoner:
+    max_budget: 3.0
+    budget_duration: "30d"

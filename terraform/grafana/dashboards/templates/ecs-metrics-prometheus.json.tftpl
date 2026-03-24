@@ -1,0 +1,227 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Metricas de infraestrutura ECS via Prometheus (Node.js)",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Event Loop Utilization",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "avg(nodejs_eventloop_utilization_ratio{job=\"${service_job}\"}) * 100",
+          "legendFormat": "ELU %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage (Heap)",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_memory_heap_used_bytes{job=\"${service_job}\"} / 1024 / 1024",
+          "legendFormat": "Heap Used"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 256 },
+              { "color": "red", "value": 512 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Heap Total",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_memory_heap_total_bytes{job=\"${service_job}\"} / 1024 / 1024",
+          "legendFormat": "Heap Total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 512 },
+              { "color": "red", "value": 1024 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "RSS Memory",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_memory_rss_bytes{job=\"${service_job}\"} / 1024 / 1024",
+          "legendFormat": "RSS"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 512 },
+              { "color": "red", "value": 1024 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Memory Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_memory_heap_used_bytes{job=\"${service_job}\"} / 1024 / 1024",
+          "legendFormat": "Heap Used"
+        },
+        {
+          "expr": "nodejs_memory_heap_total_bytes{job=\"${service_job}\"} / 1024 / 1024",
+          "legendFormat": "Heap Total"
+        },
+        {
+          "expr": "nodejs_memory_rss_bytes{job=\"${service_job}\"} / 1024 / 1024",
+          "legendFormat": "RSS"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Event Loop Utilization Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_eventloop_utilization_ratio{job=\"${service_job}\"} * 100",
+          "legendFormat": "Event Loop Utilization %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Event Loop Delay",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_eventloop_delay_mean_seconds{job=\"${service_job}\"} * 1000",
+          "legendFormat": "Mean"
+        },
+        {
+          "expr": "nodejs_eventloop_delay_p99_seconds{job=\"${service_job}\"} * 1000",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Active Handles & Requests",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "${ds_prometheus}" },
+      "targets": [
+        {
+          "expr": "nodejs_active_handles_total_ratio{job=\"${service_job}\"}",
+          "legendFormat": "Active Handles"
+        },
+        {
+          "expr": "nodejs_active_requests_total_ratio{job=\"${service_job}\"}",
+          "legendFormat": "Active Requests"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          }
+        }
+      }
+    }
+  ],
+  "schemaVersion": 39
+}

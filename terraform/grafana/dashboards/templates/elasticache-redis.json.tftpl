@@ -1,0 +1,152 @@
+{
+  "uid": "${dashboard_uid}",
+  "title": "${title}",
+  "description": "Metricas CloudWatch do ElastiCache Redis - CPU, Memory, Cache Hits/Misses, Connections",
+  "tags": ${tags},
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "CPU Utilization", "type": "gauge",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ElastiCache",
+        "metricName": "CPUUtilization",
+        "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true }
+    },
+    {
+      "id": 2, "title": "Memory Usage", "type": "gauge",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ElastiCache",
+        "metricName": "DatabaseMemoryUsagePercentage",
+        "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true }
+    },
+    {
+      "id": 3, "title": "Cache Hits", "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ElastiCache",
+        "metricName": "CacheHits",
+        "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] },
+        "matchExact": true,
+        "statistic": "Sum",
+        "statistics": ["Sum"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 4, "title": "Cache Misses", "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ElastiCache",
+        "metricName": "CacheMisses",
+        "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] },
+        "matchExact": true,
+        "statistic": "Sum",
+        "statistics": ["Sum"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics"
+      }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 100 }, { "color": "red", "value": 500 }] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 5, "title": "CPU Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [{
+        "refId": "A",
+        "datasource": "${ds_cloudwatch}",
+        "namespace": "AWS/ElastiCache",
+        "metricName": "CPUUtilization",
+        "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] },
+        "matchExact": true,
+        "statistic": "Average",
+        "statistics": ["Average"],
+        "period": "60",
+        "region": "us-east-1",
+        "metricQueryType": 0,
+        "metricEditorMode": 0,
+        "queryMode": "Metrics",
+        "alias": "CPU %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } }
+    },
+    {
+      "id": 6, "title": "Cache Hits vs Misses", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 5, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ElastiCache", "metricName": "CacheHits", "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Hits" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ElastiCache", "metricName": "CacheMisses", "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Misses" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Hits" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }, { "matcher": { "id": "byName", "options": "Misses" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    },
+    {
+      "id": 7, "title": "Memory Usage Over Time", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ElastiCache", "metricName": "DatabaseMemoryUsagePercentage", "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Memory %" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ElastiCache", "metricName": "BytesUsedForCache", "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Bytes Used" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Memory %" }, "properties": [{ "id": "unit", "value": "percent" }] }, { "matcher": { "id": "byName", "options": "Bytes Used" }, "properties": [{ "id": "unit", "value": "bytes" }] }] }
+    },
+    {
+      "id": 8, "title": "Connections & Evictions", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 8 },
+      "datasource": "${ds_cloudwatch}",
+      "targets": [
+        { "refId": "A", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ElastiCache", "metricName": "CurrConnections", "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] }, "matchExact": true, "statistic": "Average", "statistics": ["Average"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Connections" },
+        { "refId": "B", "datasource": "${ds_cloudwatch}", "namespace": "AWS/ElastiCache", "metricName": "Evictions", "dimensions": { "CacheClusterId": ["${redis_cluster_id}"] }, "matchExact": true, "statistic": "Sum", "statistics": ["Sum"], "period": "60", "region": "us-east-1", "metricQueryType": 0, "metricEditorMode": 0, "queryMode": "Metrics", "alias": "Evictions" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 } }, "overrides": [{ "matcher": { "id": "byName", "options": "Evictions" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }] }
+    }
+  ],
+  "schemaVersion": 39
+}

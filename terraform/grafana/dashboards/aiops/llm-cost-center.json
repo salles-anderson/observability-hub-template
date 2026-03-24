@@ -1,0 +1,85 @@
+{
+  "uid": "llm-cost-center",
+  "title": "LLM Cost Center",
+  "description": "Custo por provider, tokens, budget burn rate, cache savings",
+  "tags": ["aiops", "llm", "cost", "finops"],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": {"from": "now-7d", "to": "now"},
+  "panels": [
+    {"id": 1, "title": "Overview", "type": "row", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}},
+    {
+      "id": 2, "title": "API Calls (7d)", "type": "stat",
+      "gridPos": {"x": 0, "y": 1, "w": 6, "h": 5},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"api.anthropic.com\" [$__range])"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}},
+      "options": {"colorMode": "background"}
+    },
+    {
+      "id": 3, "title": "LiteLLM Requests (7d)", "type": "stat",
+      "gridPos": {"x": 6, "y": 1, "w": 6, "h": 5},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"litellm\"} |= \"200 OK\" |!= \"health\" [$__range])"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "purple", "value": null}]}}},
+      "options": {"colorMode": "background"}
+    },
+    {
+      "id": 4, "title": "Cache Hits (7d)", "type": "stat",
+      "gridPos": {"x": 12, "y": 1, "w": 6, "h": 5},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"Cache HIT\" [$__range])"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}},
+      "options": {"colorMode": "background"}
+    },
+    {
+      "id": 5, "title": "Errors (7d)", "type": "stat",
+      "gridPos": {"x": 18, "y": 1, "w": 6, "h": 5},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=~\"chainlit-chat|litellm\"} |~ \"ERROR|error\" |!= \"httpx\" [$__range])"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}},
+      "options": {"colorMode": "background"}
+    },
+    {"id": 10, "title": "Provider Activity", "type": "row", "gridPos": {"x": 0, "y": 6, "w": 24, "h": 1}},
+    {
+      "id": 11, "title": "Claude API Calls Over Time", "type": "timeseries",
+      "gridPos": {"x": 0, "y": 7, "w": 8, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"api.anthropic.com\" [1h])", "legendFormat": "Claude"}],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 80}, "color": {"fixedColor": "purple", "mode": "fixed"}}}
+    },
+    {
+      "id": 12, "title": "Gemini/DeepSeek via LiteLLM", "type": "timeseries",
+      "gridPos": {"x": 8, "y": 7, "w": 8, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [
+        {"refId": "A", "expr": "count_over_time({container=\"litellm\"} |= \"200 OK\" |!= \"health\" [1h])", "legendFormat": "LiteLLM Total"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 80}, "color": {"fixedColor": "orange", "mode": "fixed"}}}
+    },
+    {
+      "id": 13, "title": "Cache Savings Over Time", "type": "timeseries",
+      "gridPos": {"x": 16, "y": 7, "w": 8, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [
+        {"refId": "A", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"Cache HIT\" [1h])", "legendFormat": "Cache HIT (saved)"},
+        {"refId": "B", "expr": "count_over_time({container=\"chainlit-chat\"} |= \"Cache MISS\" [1h])", "legendFormat": "Cache MISS (LLM called)"}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 60, "stacking": {"mode": "normal"}}}}
+    },
+    {"id": 20, "title": "Budget", "type": "row", "gridPos": {"x": 0, "y": 15, "w": 24, "h": 1}},
+    {
+      "id": 21, "title": "Budget Config", "type": "text",
+      "gridPos": {"x": 0, "y": 16, "w": 24, "h": 4},
+      "options": {"mode": "markdown", "content": "## Budget Mensal: $50/mês\n\n| Provider | Modelo | Budget | Uso |\n|----------|--------|--------|-----|\n| Anthropic | Claude Sonnet 4.6 (Correlator + AG-5) | $20/mês | Verificar no [console.anthropic.com](https://console.anthropic.com) |\n| Google | Gemini 3.1 Pro (4 agents) + Flash (router) | $25/mês | Verificar no [AI Studio](https://aistudio.google.com) |\n| DeepSeek | V3.2 (FinOps + Security agents) | $5/mês | Verificar no [platform.deepseek.com](https://platform.deepseek.com) |\n\n**Saldo API Claude:** ~$46.83 restante ($65 carregado - $18.17 usado)"}
+    },
+    {"id": 30, "title": "Logs LiteLLM", "type": "row", "gridPos": {"x": 0, "y": 20, "w": 24, "h": 1}},
+    {
+      "id": 31, "title": "LiteLLM Logs (exceto healthcheck)", "type": "logs",
+      "gridPos": {"x": 0, "y": 21, "w": 24, "h": 8},
+      "datasource": {"type": "loki", "uid": "afayiiplslon4a"},
+      "targets": [{"refId": "A", "expr": "{container=\"litellm\"} |!= \"health\""}]
+    }
+  ],
+  "schemaVersion": 39
+}
