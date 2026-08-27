@@ -1,0 +1,203 @@
+// =============================================================================
+// Grafana Alloy Configuration - Observability Hub
+// =============================================================================
+// Pipeline: receiver -> resourcedetection -> attributes -> filter -> batch -> exporters
+// Sprint 3: + label enrichment, retry/queue, log-derived metrics
+
+// Receiver - Recebe OTLP das aplicacoes
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.processor.resourcedetection.default.input]
+    logs    = [otelcol.processor.resourcedetection.default.input]
+    traces  = [otelcol.processor.resourcedetection.default.input]
+  }
+}
+
+// Processor 1 - Detecta AWS ECS metadata (cluster, task, account, region)
+otelcol.processor.resourcedetection "default" {
+  detectors = ["env", "ecs", "ec2"]
+
+  ecs {
+    resource_attributes {
+      aws.ecs.cluster.arn  { enabled = true }
+      aws.ecs.task.arn     { enabled = true }
+      cloud.account.id     { enabled = true }
+      cloud.region         { enabled = true }
+      cloud.platform       { enabled = true }
+      cloud.provider       { enabled = true }
+    }
+  }
+
+  output {
+    metrics = [otelcol.processor.attributes.default.input]
+    logs    = [otelcol.processor.attributes.default.input]
+    traces  = [otelcol.processor.attributes.default.input]
+  }
+}
+
+// Processor 2 - Copia service.name -> project, deployment.environment -> environment
+otelcol.processor.attributes "default" {
+  action {
+    key            = "project"
+    from_attribute = "service.name"
+    action         = "upsert"
+  }
+  action {
+    key            = "environment"
+    from_attribute = "deployment.environment"
+    action         = "upsert"
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.filter.default.input]
+    traces  = [otelcol.processor.transform.mark_route_class.input]
+  }
+}
+
+// Processor 3 - Drop logs DEBUG/TRACE para reduzir custo Loki
+otelcol.processor.filter "default" {
+  error_mode = "ignore"
+
+  logs {
+    log_record = [
+      "severity_number < SEVERITY_NUMBER_INFO",
+    ]
+  }
+
+  output {
+    logs = [otelcol.processor.batch.default.input]
+  }
+}
+
+// Processor 3.5 - Marca rotas de ruido (healthcheck/estatico) SEM dropar.
+// Sistema bancario: preserva 100% do dado; o Grafana filtra por teck.route_class.
+otelcol.processor.transform "mark_route_class" {
+  error_mode = "ignore"
+
+  trace_statements {
+    context = "span"
+    statements = [
+      `set(attributes["teck.route_class"], "healthcheck") where kind == SPAN_KIND_SERVER and IsMatch(attributes["url.path"], "^(/[^/]+)*/(health|ready|live|ping|metrics|healthz|livez|readyz)z?$")`,
+      `set(attributes["teck.route_class"], "healthcheck") where kind == SPAN_KIND_SERVER and IsMatch(attributes["http.target"], "^(/[^/]+)*/(health|ready|live|ping|metrics|healthz|livez|readyz)z?$")`,
+      `set(attributes["teck.route_class"], "static") where kind == SPAN_KIND_SERVER and IsMatch(attributes["url.path"], "\\.(js|css|png|jpe?g|svg|ico|woff2?|map)$")`,
+    ]
+  }
+
+  output {
+    traces = [otelcol.processor.batch.default.input]
+  }
+}
+
+// Processor 4 - Agrupa em batches para melhor performance
+otelcol.processor.batch "default" {
+  timeout             = "10s"
+  send_batch_size     = 1024
+  send_batch_max_size = 2048
+
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+    logs    = [otelcol.processor.attributes.loki_hints.input]
+    traces  = [otelcol.exporter.otlphttp.tempo.input]
+  }
+}
+
+// =============================================================================
+// Exporters
+// =============================================================================
+
+// Processor 5 - Hint para converter resource attributes em Loki labels indexados
+otelcol.processor.attributes "loki_hints" {
+  action {
+    key    = "loki.resource.labels"
+    value  = "project, environment, service.name"
+    action = "upsert"
+  }
+
+  output {
+    logs = [otelcol.exporter.loki.default.input]
+  }
+}
+
+// Exporter Logs -> Loki
+otelcol.exporter.loki "default" {
+  forward_to = [loki.process.metrics.receiver]
+}
+
+// Log-derived metrics - extrai contadores por severidade antes de enviar ao Loki
+loki.process "metrics" {
+  forward_to = [loki.write.default.receiver]
+
+  stage.metrics {
+    metric.counter {
+      name        = "log_lines_total"
+      description = "Total log lines processed"
+      prefix      = "alloy_"
+      match_all   = true
+      action      = "inc"
+    }
+  }
+}
+
+loki.write "default" {
+  endpoint {
+    url            = "http://loki.observability.local:3100/loki/api/v1/push"
+    batch_wait     = "1s"
+    batch_size     = "1MiB"
+    retry_on_http_429 = true
+  }
+}
+
+// Exporter Traces -> Tempo (com retry e sending queue)
+otelcol.exporter.otlphttp "tempo" {
+  client {
+    endpoint = "http://tempo.observability.local:4318"
+    tls {
+      insecure = true
+    }
+  }
+
+  sending_queue {
+    enabled       = true
+    num_consumers = 4
+    queue_size    = 256
+  }
+
+  retry_on_failure {
+    enabled          = true
+    initial_interval = "5s"
+    max_interval     = "30s"
+    max_elapsed_time = "5m"
+  }
+}
+
+// Exporter Metrics -> Prometheus (com queue config)
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus.observability.local:9090/api/v1/write"
+
+    queue_config {
+      capacity             = 2500
+      max_shards           = 200
+      min_shards           = 1
+      max_samples_per_send = 500
+    }
+  }
+}
+
+// Logging interno do Alloy
+logging {
+  level  = "info"
+  format = "logfmt"
+}

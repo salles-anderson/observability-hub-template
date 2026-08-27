@@ -1,0 +1,107 @@
+# Source of truth de alocação de CIDR. PR obrigatório p/ alterar.
+# CI rejeita CIDR duplicado entre allocations (em qualquer bloco) ou CIDR que
+# esteja em allocations e free ao mesmo tempo.
+# Ao alocar: remova o CIDR de 'free', adicione em 'allocations' com account/env/status,
+# e atualize o tfvars correspondente.
+#
+# status:
+#   live     = VPC existe na AWS (conferido via describe-vpcs)
+#   reserved = CIDR declarado em tfvars/variables de um stack, mas VPC ainda não existe
+#   planned  = intenção registrada, sem código e sem VPC
+#
+# Última auditoria: 2026-08-17
+#   Método: describe-vpcs em 12 contas (us-east-1, us-east-2, sa-east-1), cruzado com
+#   os vpc_cidr dos stacks em terraform/ e com a route table do TGW tgw-00000000000000001.
+audit:
+  date: "2026-08-17"
+  accounts_scanned: ["777777777777","141414141414","666666666666","131313131313",
+                     "222222222222","333333333333","999999999999","555555555555",
+                     "111111111111","888888888888","444444444444","121212121212"]
+  regions_scanned: ["us-east-1","us-east-2","sa-east-1"]
+blocks:
+  rfc1918_172_12:
+    note: "Bloco TGW principal — esgotado: nenhum /16 livre; alocacao nova so vem do bloco 10/8 ou da liberacao de um CIDR existente"
+    allocations:
+      "172.16.0.0/16": { account: "777777777777", env: akrk-prod,              status: live,     vpc: vpc-00000000000000001, region: us-east-1 }
+      "172.17.0.0/16": { account: "777777777777", env: akrk-homolog,           status: live,     vpc: vpc-00000000000000002, region: us-east-1 }
+      "172.18.0.0/16": { account: "666666666666", env: abc-card-prod,          status: live,     vpc: vpc-00000000000000003, region: us-east-1 }
+      "172.19.0.0/16": { account: "222222222222", env: yourorg-dev,       status: live,     vpc: vpc-00000000000000004, region: us-east-1 }
+      "172.20.0.0/16": { account: "444444444444", env: yourorg-prod,      status: live,     vpc: vpc-00000000000000005, region: us-east-1 }
+      "172.21.0.0/16": { account: "333333333333", env: gestao-cartao-homolog,  status: live,     vpc: vpc-00000000000000006, region: us-east-1 }
+      "172.22.0.0/16": { account: "444444444444", env: gestao-cartao-prod,     status: planned }
+      "172.23.0.0/16": { account: "888888888888", env: capital-dev,            status: reserved, stack: terraform/capital/dev/us-east-1 }
+      "172.24.0.0/16": { account: "888888888888", env: capital-homolog,        status: reserved, stack: terraform/capital/homolog/us-east-1 }
+      "172.25.0.0/16": { account: "888888888888", env: capital-prod,           status: reserved, stack: terraform/capital/prod/us-east-1 }
+      "172.26.0.0/16": { account: "999999999999", env: hubdigital-dev,         status: reserved, stack: terraform/hubdigital/dev/us-east-1 }
+      "172.27.0.0/16": { account: "999999999999", env: hubdigital-homolog,     status: reserved, stack: terraform/hubdigital/homolog/us-east-1 }
+      "172.28.0.0/16": { account: "999999999999", env: hubdigital-prod,        status: reserved, stack: terraform/hubdigital/prod/us-east-1 }
+      "172.29.0.0/16": { account: "555555555555", env: infra-kong,             status: live,     vpc: vpc-00000000000000007, region: us-east-1 }
+      "172.30.0.0/16": { account: "333333333333", env: yourorg-homolog-secondary, status: reserved, stack: terraform/yourorg/homolog/us-east-1, note: "CIDR secundario da VPC 172.18; existe porque o primario colide com o ABC Card prod" }
+      "172.31.0.0/16": { account: "111111111111", env: obs-hub,                status: live,     vpc: vpc-00000000000000008, region: us-east-1 }
+    free: []
+  rfc1918_10_8:
+    note: "Bloco alternativo. Os /25 de dock (10.239.x) são roteáveis no TGW; o resto é ilha por conta."
+    allocations:
+      "10.1.0.0/16":      { account: "666666666666", env: autbank-abccard,       status: live, vpc: vpc-00000000000000009, region: us-east-1 }
+      "10.30.0.0/16":     { account: "888888888888", env: capital-prod-sa,       status: live, vpc: vpc-00000000000000010, region: sa-east-1 }
+      "10.50.0.0/16":     { account: "999999999999", env: hubdigital-dev,        status: live, vpc: vpc-00000000000000011, region: us-east-1, note: "VPC nomeada financeira-dev-vpc" }
+      "10.51.0.0/16":     { account: "999999999999", env: hubdigital-stg,        status: live, vpc: vpc-00000000000000012, region: us-east-1, note: "VPC nomeada financeira-stg-vpc" }
+      "10.52.0.0/16":     { account: "999999999999", env: hubdigital-prod,       status: live, vpc: vpc-00000000000000013, region: us-east-1, note: "VPC nomeada financeira-prod-vpc" }
+      "10.60.0.0/16":     { account: "999999999999", env: hubdigital-staging-sa, status: live, region: sa-east-1, note: "3 VPCs no mesmo CIDR, ver conflicts" }
+      "10.70.0.0/16":     { account: "999999999999", env: seu-cash-prod-sa,      status: live, vpc: vpc-00000000000000014, region: sa-east-1 }
+      "10.77.0.0/16":     { account: "141414141414", env: sistema-akrk,          status: live, vpc: vpc-00000000000000015, region: us-east-1 }
+      "10.200.0.0/16":    { account: "888888888888", env: capital-rtm-cnet,      status: live, vpc: vpc-00000000000000016, region: sa-east-1 }
+      "10.201.0.0/16":    { account: "666666666666", env: abc-card-rtm-cnet,     status: live, vpc: vpc-00000000000000017, region: sa-east-1 }
+      "10.239.15.0/25":   { account: "666666666666", env: apus-dock-homolog,     status: live, vpc: vpc-00000000000000018, region: us-east-1, tgw: attached }
+      "10.239.15.128/25": { account: "666666666666", env: apus-dock-prod,        status: live, vpc: vpc-00000000000000019, region: us-east-1 }
+      "10.239.45.0/25":   { account: "888888888888", env: capital-dock-homolog,  status: live, vpc: vpc-00000000000000020, region: us-east-1, tgw: attached }
+      "10.239.45.128/25": { account: "888888888888", env: capital-dock-prod,     status: live, vpc: vpc-00000000000000021, region: us-east-1 }
+    free: []
+conflicts:
+  - cidr: "172.18.0.0/16"
+    note: >-
+      TRES donos na AWS, nao dois. Alem do ABC Card prod (vpc-00000000000000003, dono do CIDR
+      no registry) existem: 333333333333 vpc-00000000000000022 (homolog antiga) e 777777777777
+      vpc-00000000000000023 (akrk dev). Nenhuma das duas esta anexada ao TGW, e e esse CIDR
+      compartilhado que impede a VPC 172.18 da conta homolog de entrar no Observability Hub.
+      Resolucao: as contas legadas akrk (777777777777) e abc-card (666666666666) serao migradas
+      para as contas novas, e nesse movimento os CIDRs 172.18 duplicados saem de cena. Para a
+      VPC 172.18 da conta homolog, a decisao de 2026-08-26 foi outra: ela nao sera aposentada,
+      as cargas continuam nela. Em vez disso ela ganhou um CIDR secundario, 172.30.0.0/16 (ver
+      allocations acima), com subnets e route table proprias, e e por esse CIDR novo que ela
+      entra no Observability Hub via TGW, sem colidir com o 172.18 do ABC Card prod.
+      A CONFIRMAR (nao deduzir): conta de destino de cada migracao, card/plano de referencia e
+      prazo. Reveja esta nota quando isso estiver definido.
+  - cidr: "172.16.0.0/16"
+    note: >-
+      Duplicado nao documentado ate 2026-08-17: alem da akrk prod (dona no registry), existe
+      666666666666 vpc-00000000000000024 "vpc-core-infra-prod-vpc" em sa-east-1. Nenhuma das
+      duas colide no TGW hoje porque so a akrk prod esta anexada.
+  - cidr: "172.17.0.0/16"
+    note: >-
+      Duplicado nao documentado ate 2026-08-17: alem da akrk homolog (dona no registry), existe
+      666666666666 vpc-00000000000000025 "vpc-core-infra-homolog-vpc" em us-east-1. So a akrk
+      homolog esta anexada ao TGW.
+  - cidr: "172.31.0.0/16"
+    note: >-
+      O obs-hub usa 172.31.0.0/16 na VPC core, que e o mesmo range das aws-controltower-VPC e
+      das DefaultVPC de praticamente todas as contas. Hoje nao quebra porque nenhuma control
+      tower esta anexada ao TGW, mas qualquer attach futuro de VPC default colide.
+  - cidr: "10.60.0.0/16"
+    note: >-
+      Tres VPCs no MESMO CIDR, mesma conta 999999999999 e mesma regiao sa-east-1:
+      vpc-00000000000000026 (broker-akrk-staging), vpc-00000000000000027 (antecipey-staging)
+      e vpc-00000000000000028 (seu-cash-staging). Nenhuma roteavel entre si.
+  - cidr: "10.0.0.0/16"
+    note: >-
+      Range mais reusado do parque, sem dono unico possivel: 666666666666 (gestao-comissao-vpc,
+      gestao-cartao-api-vpc, e uma VPC sem Name em us-east-2), 777777777777 (dois keycloak,
+      vpc-serverless-nat, vpc-padrao us-east-2) e 141414141414 (projeto-vpc us-east-1 e us-east-2).
+      Nao alocado no registry por nao ter dono unico. Nao usar para nada roteavel.
+drift_stacks:
+  # Stacks cujo vpc_cidr declarado nao corresponde a nenhuma VPC na AWS e que nao tem
+  # workspace no TFC. Sao esqueleto de codigo, nao alocacao efetiva.
+  - { stack: terraform/admin/prod/us-east-1,      vpc_cidr: "172.22.0.0/16", note: "colide com gestao-cartao-prod planned; sem workspace no TFC" }
+  - { stack: terraform/cloudtrail/prod/us-east-1, vpc_cidr: "172.21.0.0/16", note: "colide com gestao-cartao-homolog live; sem workspace no TFC" }
+  - { stack: terraform/abc-card/homolog/us-east-1, vpc_cidr: "172.17.0.0/16", note: "mesmo CIDR da akrk homolog; ver conflicts" }
+  - { stack: terraform/akrk/homolog/sa-east-1,    vpc_cidr: "172.17.0.0/16", note: "project_name com default errado (vpc-core-infra-dev); sem VPC em sa-east-1" }

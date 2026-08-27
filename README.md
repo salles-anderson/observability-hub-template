@@ -15,6 +15,8 @@
 - [Architecture](#architecture)
 - [Stack](#stack)
 - [Quick Start](#quick-start)
+- [Layered Foundation](#-layered-foundation-state-decomposition)
+- [Sanitization Gate](#-sanitization-gate)
 - [Directory Structure](#directory-structure)
 - [Terraform Workspaces](#terraform-workspaces)
 - [Docker Services](#docker-services)
@@ -162,18 +164,19 @@ git clone https://github.com/YOUR_USER/observability-hub-template.git
 cd observability-hub-template
 
 # Copy example configs
-cp terraform/hub/terraform.tfvars.example terraform/hub/terraform.tfvars
+cp terraform/foundation/lgtm/terraform.tfvars.example terraform/foundation/lgtm/terraform.tfvars
 cp terraform/grafana/terraform.tfvars.example terraform/grafana/terraform.tfvars
 
 # Edit with your values
-vim terraform/hub/terraform.tfvars
+vim terraform/foundation/lgtm/terraform.tfvars
 ```
 
 ### Step 2: Deploy infrastructure
 
 ```bash
 # Initialize Terraform Cloud workspace
-cd terraform/hub
+cd terraform/foundation/network   # deploy layers in dependency order:
+#   network -> security -> data -> edge -> lgtm
 terraform init
 terraform plan
 terraform apply
@@ -211,13 +214,70 @@ echo "https://grafana.YOUR_DOMAIN"
 
 ---
 
+## 🧱 Layered Foundation (state decomposition)
+
+This platform started as **one Terraform workspace holding everything** — network, security,
+databases, edge and the LGTM stack in a single state file. That works until it doesn't: every plan
+touched ~450 resources, a change to a dashboard could surface a diff in the VPC, and blast radius was
+the whole platform.
+
+`terraform/foundation/` is the result of decomposing that monolith into layers, each with its own
+state and its own workspace:
+
+| Layer | Owns | Why it is separate |
+|---|---|---|
+| `network/` | VPC, subnets, route tables, Transit Gateway attachments | Changes rarely; everything else depends on it |
+| `security/` | IAM roles, security groups, cross-account access | Reviewed by different people, different cadence |
+| `data/` | RDS, ElastiCache, persistent volumes | Holds state you cannot recreate; deserves its own blast radius |
+| `edge/` | ALB, WAF, DNS, certificates | Public surface; the layer most likely to need an emergency change |
+| `lgtm/` | Grafana, Loki, Tempo, Mimir/Prometheus, Alloy | The observability stack itself |
+
+**The migration order matters** and is the part most guides skip: extract the layer with the fewest
+inbound dependencies first (`network`), and only then the ones that consume it. Each extraction is an
+`import` into the new state plus a `removed` block in the old one — never a destroy-and-recreate.
+
+> Lesson learned the hard way: a `terraform plan` compares your code against **state**, not against
+> the previous code. A resource committed months ago but never applied will silently ride along in
+> every future plan. Check for pending diffs before planning an "isolated" change.
+
+---
+
+## 🔒 Sanitization gate
+
+This repository mirrors a real platform, so it ships with a gate that refuses to let identifiers of
+the source organization slip in:
+
+```bash
+./scripts/check-no-secrets.sh
+```
+
+It scans every tracked file for AWS account IDs, resource IDs (`vpc-`, `subnet-`, `sg-`, `tgw-`…),
+corporate domains and credential patterns, and **exits non-zero when it finds anything — or when it
+cannot scan at all**. That last part is deliberate: a checker that approves because it got an empty
+answer is worse than no checker, since it manufactures false confidence.
+
+Run it before every commit. Accepted placeholders are documented inside the script.
+
+---
+
 ## 📁 Directory Structure
 
 ```
 observability-hub-template/
 │
 ├── terraform/
-│   ├── hub/                          # Main infrastructure (ECS, ALB, RDS, IAM)
+│   ├── foundation/                   # Decomposed layers, one state each (see above)
+│   │   ├── network/                  # VPC, subnets, routing, Transit Gateway
+│   │   ├── security/                 # IAM, security groups, cross-account
+│   │   ├── data/                     # RDS, ElastiCache, persistence
+│   │   ├── edge/                     # ALB, WAF, DNS, certificates
+│   │   └── lgtm/                     # Grafana, Loki, Tempo, Prometheus, Alloy
+│   │
+│   ├── modules/
+│   │   └── spoke-readonly-role/      # Cross-account read-only role, with explicit
+│   │                                 # deny on secrets, SSM, S3 objects and DynamoDB
+│   │
+│   ├── hub/                          # LEGACY monolith, kept to show the starting point
 │   │   ├── main.tf                   # Provider + backend
 │   │   ├── variables.tf              # All variables
 │   │   ├── terraform.tfvars.example  # Example values
