@@ -70,6 +70,15 @@ ALLOW
 creds=$(echo "$alvos" | xargs grep -EohI '(AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36}|glpat-[0-9A-Za-z_-]{20}|xox[baprs]-[0-9A-Za-z-]{10,})' 2>/dev/null | sort -u || true)
 [ -n "$creds" ] && relata "credencial" $creds
 
+# 5) Nome da organizacao de origem e Route53 hosted zone IDs.
+#    Adicionado depois que uma varredura manual pegou o que este gate nao pegava:
+#    ele procurava o DOMINIO corporativo, e o nome cru da org passou batido.
+org=$(echo "$alvos" | xargs grep -EohiI '\byourorg\b' 2>/dev/null | sort -u || true)
+[ -n "$org" ] && relata "nome da organizacao de origem" $org
+
+zonas=$(echo "$alvos" | xargs grep -EohI '\bZ[A-Z0-9]{12,21}\b' 2>/dev/null | sort -u | grep -v 'EXAMPLE' || true)
+[ -n "$zonas" ] && relata "route53 hosted zone id" $zonas
+
 if [ "$falhas" -gt 0 ]; then
   echo
   echo "REPROVADO: $falhas categoria(s) com dado real. Nao commite."

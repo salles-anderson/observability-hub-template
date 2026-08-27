@@ -1,5 +1,5 @@
 # =============================================================================
-# Grafana Customizado - Teck Solucoes
+# Grafana Customizado - YourOrg
 # =============================================================================
 # Build: docker build -t grafana-teck:11.4.0 .
 # =============================================================================
@@ -11,7 +11,7 @@ FROM grafana/grafana:${GRAFANA_VERSION}
 # Metadata
 # -----------------------------------------------------------------------------
 LABEL maintainer="DevOps <devops@yourorg.com.br>"
-LABEL description="Grafana customizado com branding Teck Solucoes"
+LABEL description="Grafana customizado com branding YourOrg"
 
 # Switch to root for modifications
 USER root
@@ -22,7 +22,7 @@ USER root
 # Logo SVG (fallback - substitui o icone padrao do Grafana)
 COPY img/teck-logo.svg /usr/share/grafana/public/img/grafana_icon.svg
 
-# Logos PNG oficiais da Teck Solucoes
+# Logos PNG oficiais da YourOrg
 COPY img/teck-logo-white.png /usr/share/grafana/public/img/teck-logo-white.png
 COPY img/teck-logo-color.png /usr/share/grafana/public/img/teck-logo-color.png
 

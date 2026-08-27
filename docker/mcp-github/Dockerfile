@@ -8,7 +8,7 @@
 
 FROM python:3.12-slim
 
-LABEL maintainer="Teck Solucoes - Observability Hub"
+LABEL maintainer="YourOrg - Observability Hub"
 LABEL io.modelcontextprotocol.server.name="teck/mcp-github"
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \

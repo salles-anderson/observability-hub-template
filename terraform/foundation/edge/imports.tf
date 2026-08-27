@@ -43,11 +43,11 @@ import {
 }
 import {
   to = module.acm.aws_route53_record.validation["*.observability.tower.yourorg.com.br"]
-  id = "Z0000000002EXAMPLE__0000000000000000000000000000abcd.observability.tower.yourorg.com.br._CNAME"
+  id = "Z0000000000001EXAMPLE__0000000000000000000000000000abcd.observability.tower.yourorg.com.br._CNAME"
 }
 import {
   to = module.acm.aws_route53_record.validation["observability.tower.yourorg.com.br"]
-  id = "Z0000000002EXAMPLE__0000000000000000000000000000abcd.observability.tower.yourorg.com.br._CNAME"
+  id = "Z0000000000001EXAMPLE__0000000000000000000000000000abcd.observability.tower.yourorg.com.br._CNAME"
 }
 # NOTA: aws_acm_certificate_validation NAO entra em import block — é um recurso
 # LÓGICO/sintético do Terraform (so aguarda o cert ficar ISSUED), e o provider
@@ -73,9 +73,9 @@ import {
 # ---------- Route53 — A-alias records (grafana + teck_ai) ----------
 import {
   to = module.route53_records.aws_route53_record.this["grafana"]
-  id = "Z0000000002EXAMPLE_grafana_A"
+  id = "Z0000000000001EXAMPLE_grafana_A"
 }
 import {
   to = aws_route53_record.teck_ai[0]
-  id = "Z0000000002EXAMPLE_ai.observability.tower.yourorg.com.br_A"
+  id = "Z0000000000001EXAMPLE_ai.observability.tower.yourorg.com.br_A"
 }

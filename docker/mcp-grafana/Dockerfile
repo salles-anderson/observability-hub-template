@@ -24,7 +24,7 @@ RUN apk add --no-cache git && \
 FROM alpine:3.21
 
 LABEL io.modelcontextprotocol.server.name="io.github.grafana/mcp-grafana"
-LABEL maintainer="Teck Solucoes - Observability Hub"
+LABEL maintainer="YourOrg - Observability Hub"
 
 RUN apk upgrade --no-cache && apk add --no-cache ca-certificates
 

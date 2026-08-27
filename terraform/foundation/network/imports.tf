@@ -40,8 +40,8 @@ locals {
   # Route53 VPC association authorizations (for_each — chave casa var.spoke_vpc_dns_associations)
   # ID = "<zone_id>:<vpc_id>"
   spoke_assoc_import_ids = {
-    abccard-prod     = "Z0000000001EXAMPLE:vpc-00000000000000003"
-    yourorg-dev = "Z0000000001EXAMPLE:vpc-00000000000000004"
+    abccard-prod     = "Z0000000000002EXAMPLE:vpc-00000000000000003"
+    yourorg-dev = "Z0000000000002EXAMPLE:vpc-00000000000000004"
   }
 
   # (Spoke VPC routes removidas: peering desativado, rotas geridas via TGW pelo

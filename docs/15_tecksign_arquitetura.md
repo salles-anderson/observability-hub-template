@@ -2,7 +2,7 @@
 
 ## 1. Visao Geral
 
-TeckSign e uma plataforma de assinatura digital desenvolvida pela Teck Solucoes. Permite upload, assinatura (PAdES + Email-OTP), versionamento e gestao de documentos PDF com compliance LGPD.
+TeckSign e uma plataforma de assinatura digital desenvolvida pela YourOrg. Permite upload, assinatura (PAdES + Email-OTP), versionamento e gestao de documentos PDF com compliance LGPD.
 
 ### Repositorios
 

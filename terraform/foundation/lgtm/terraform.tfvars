@@ -16,7 +16,7 @@ aws_region   = "us-east-1"
 # -----------------------------------------------------------------------------
 # DNS (identico a build/ai-platform — usado pela listener rule/record do grafana)
 # -----------------------------------------------------------------------------
-hosted_zone_id = "Z0000000002EXAMPLE"
+hosted_zone_id = "Z0000000000001EXAMPLE"
 domain_name    = "observability.tower.yourorg.com.br"
 
 # -----------------------------------------------------------------------------
