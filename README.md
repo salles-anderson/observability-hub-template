@@ -360,20 +360,10 @@ observability-hub-template/
 │   └── aiops-agent/                  # Slack /ask-hub bot
 │
 ├── docs/
-│   ├── 01-overview.md                # Architecture overview
-│   ├── 02-lgtm-stack.md              # LGTM deep dive
-│   ├── 03-aiops-llm.md               # AI agents + LLM
-│   ├── 04-infrastructure.md          # AWS infrastructure
-│   ├── 05-terraform-iac.md           # Terraform patterns
-│   ├── 06-telemetry-pipeline.md      # Alloy + Fluent Bit
-│   ├── 07-alerts-dashboards.md       # Alerting strategy
-│   ├── 08-cicd.md                    # GitHub Actions
-│   ├── 09-security.md                # Security & compliance
-│   ├── 10-runbook.md                 # Operational runbook
-│   ├── 11-multi-agent.md             # Agent architecture
-│   ├── 12-rag-knowledge.md           # RAG pipeline
-│   ├── 13-prompt-engineering.md      # Prompts & guardrails
-│   └── 14-repository-structure.md    # This structure explained
+│   └── ipam/
+│       └── cidr-registry.yaml        # Source of truth for CIDR allocation.
+│                                     # Every block is either allocated or free,
+│                                     # never both — enforced by CI lint.
 │
 ├── .github/workflows/
 │   └── ecr-sync.yml                  # Auto-build + deploy on push
