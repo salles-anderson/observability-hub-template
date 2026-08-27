@@ -70,11 +70,23 @@ ALLOW
 creds=$(echo "$alvos" | xargs grep -EohI '(AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{36}|glpat-[0-9A-Za-z_-]{20}|xox[baprs]-[0-9A-Za-z-]{10,})' 2>/dev/null | sort -u || true)
 [ -n "$creds" ] && relata "credencial" $creds
 
-# 5) Nome da organizacao de origem e Route53 hosted zone IDs.
-#    Adicionado depois que uma varredura manual pegou o que este gate nao pegava:
-#    ele procurava o DOMINIO corporativo, e o nome cru da org passou batido.
-org=$(echo "$alvos" | xargs grep -EohiI '\byourorg\b' 2>/dev/null | sort -u || true)
-[ -n "$org" ] && relata "nome da organizacao de origem" $org
+# 5) Termos proibidos definidos por quem mantem o fork.
+#    Este script NAO carrega o nome de nenhuma organizacao: se carregasse, o proprio
+#    gate viraria o vazamento que ele tenta impedir. Coloque um termo por linha em
+#    .sanitize-denylist (arquivo ignorado pelo git) com o nome da sua empresa,
+#    codinomes de cliente, dominios internos, o que for.
+DENY=".sanitize-denylist"
+if [ -f "$DENY" ]; then
+  while IFS= read -r termo; do
+    [ -z "$termo" ] && continue
+    case "$termo" in \#*) continue;; esac
+    hits=$(echo "$alvos" | xargs grep -lFiI -- "$termo" 2>/dev/null | grep -v "^$DENY$" || true)
+    [ -n "$hits" ] && relata "termo proibido: $termo" $hits
+  done < "$DENY"
+else
+  echo "AVISO: $DENY nao existe. Crie-o com os termos da sua organizacao;"
+  echo "       sem ele este gate nao tem como saber o que e nome interno seu."
+fi
 
 zonas=$(echo "$alvos" | xargs grep -EohI '\bZ[A-Z0-9]{12,21}\b' 2>/dev/null | sort -u | grep -v 'EXAMPLE' || true)
 [ -n "$zonas" ] && relata "route53 hosted zone id" $zonas

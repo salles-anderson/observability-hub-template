@@ -10,3 +10,6 @@ __pycache__/
 *.key
 node_modules/
 .DS_Store
+
+# denylist local do gate de sanitizacao
+.sanitize-denylist
